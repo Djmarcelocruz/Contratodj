@@ -1,20 +1,21 @@
 const CACHE_NAME = 'dj-brow-v4';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/controleeorcamento.html',
-  '/dj_contract_juridico_atualizado.html',
-  '/historico_contratos.html',
-  '/calculadora_roi.html',
-  '/styles.css',
-  '/util.js',
-  '/manifest.json'
+  './',
+  './index.html',
+  './controleeorcamento.html',
+  './dj_contract_juridico_atualizado.html',
+  './historico_contratos.html',
+  './calculadora_roi.html',
+  './styles.css',
+  './util.js',
+  './manifest.json'
 ];
 
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
+      .catch(err => console.log('Cache failed:', err))
   );
   self.skipWaiting();
 });
@@ -24,7 +25,12 @@ self.addEventListener('fetch', event => {
     caches.match(event.request)
       .then(response => {
         if (response) return response;
-        return fetch(event.request);
+        return fetch(event.request).catch(() => {
+          // Fallback para offline
+          if (event.request.mode === 'navigate') {
+            return caches.match('./index.html');
+          }
+        });
       })
   );
 });

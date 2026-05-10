@@ -7,18 +7,41 @@ const DJ_BROWW = {
     version: '4.0',
     cryptoKey: null,
 
-    // ===== CRIPTOGRAFIA AES =====
+    // ===== CRIPTOGRAFIA AES (com fallback para HTTP) =====
+    cryptoAvailable: false,
+
+    checkCrypto() {
+        try {
+            this.cryptoAvailable = !!(window.crypto && crypto.subtle && 
+                window.location.protocol === 'https:' || 
+                window.location.hostname === 'localhost' ||
+                window.location.hostname === '127.0.0.1');
+        } catch(e) {
+            this.cryptoAvailable = false;
+        }
+        return this.cryptoAvailable;
+    },
+
     async initCrypto() {
+        if (!this.checkCrypto()) return;
         const savedKey = localStorage.getItem('dj_brow_crypto_key');
         if (savedKey) {
-            const keyData = JSON.parse(savedKey);
-            this.cryptoKey = await crypto.subtle.importKey(
-                'jwk', keyData, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
-            );
+            try {
+                const keyData = JSON.parse(savedKey);
+                this.cryptoKey = await crypto.subtle.importKey(
+                    'jwk', keyData, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+                );
+            } catch(e) {
+                console.warn('Erro ao carregar chave de criptografia:', e);
+                this.cryptoKey = null;
+            }
         }
     },
 
     async generateKey(password) {
+        if (!this.checkCrypto()) {
+            throw new Error('Criptografia não disponível. Use HTTPS ou localhost.');
+        }
         const encoder = new TextEncoder();
         const keyMaterial = await crypto.subtle.importKey(
             'raw', encoder.encode(password), { name: 'PBKDF2' }, false, ['deriveKey']
@@ -34,31 +57,43 @@ const DJ_BROWW = {
     },
 
     async encrypt(data) {
-        if (!this.cryptoKey) return data;
-        const encoder = new TextEncoder();
-        const iv = crypto.getRandomValues(new Uint8Array(12));
-        const encrypted = await crypto.subtle.encrypt(
-            { name: 'AES-GCM', iv },
-            this.cryptoKey,
-            encoder.encode(JSON.stringify(data))
-        );
-        return {
-            iv: Array.from(iv),
-            data: Array.from(new Uint8Array(encrypted))
-        };
+        if (!this.cryptoAvailable || !this.cryptoKey) return data;
+        try {
+            const encoder = new TextEncoder();
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const encrypted = await crypto.subtle.encrypt(
+                { name: 'AES-GCM', iv },
+                this.cryptoKey,
+                encoder.encode(JSON.stringify(data))
+            );
+            return {
+                iv: Array.from(iv),
+                data: Array.from(new Uint8Array(encrypted))
+            };
+        } catch(e) {
+            console.warn('Erro na criptografia, salvando sem criptografar:', e);
+            return data;
+        }
     },
 
     async decrypt(encryptedObj) {
-        if (!this.cryptoKey || !encryptedObj.iv) return encryptedObj;
-        const iv = new Uint8Array(encryptedObj.iv);
-        const data = new Uint8Array(encryptedObj.data);
-        const decrypted = await crypto.subtle.decrypt(
-            { name: 'AES-GCM', iv },
-            this.cryptoKey,
-            data
-        );
-        const decoder = new TextDecoder();
-        return JSON.parse(decoder.decode(decrypted));
+        if (!this.cryptoAvailable || !this.cryptoKey || !encryptedObj || !encryptedObj.iv) {
+            return encryptedObj;
+        }
+        try {
+            const iv = new Uint8Array(encryptedObj.iv);
+            const data = new Uint8Array(encryptedObj.data);
+            const decrypted = await crypto.subtle.decrypt(
+                { name: 'AES-GCM', iv },
+                this.cryptoKey,
+                data
+            );
+            const decoder = new TextDecoder();
+            return JSON.parse(decoder.decode(decrypted));
+        } catch(e) {
+            console.warn('Erro na descriptografia:', e);
+            return encryptedObj;
+        }
     },
 
     // ===== SANITIZAÇÃO XSS =====
@@ -276,7 +311,7 @@ const DJ_BROWW = {
             const stored = localStorage.getItem(key);
             if (!stored) return defaultValue;
             const parsed = JSON.parse(stored);
-            if (parsed.iv) {
+            if (parsed && parsed.iv && Array.isArray(parsed.iv)) {
                 return await this.decrypt(parsed);
             }
             return parsed;

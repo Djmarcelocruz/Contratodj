@@ -250,10 +250,13 @@
             border-radius: 50px;
             font-weight: 800;
             cursor: pointer;
-            display: none;
             font-size: 1rem;
             transition: var(--transition);
             margin: 20px auto;
+            display: none;
+        }
+
+        .install-btn.visible {
             display: block;
         }
 
@@ -395,7 +398,14 @@
     <script>
         // ===== PWA =====
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW não registrado:', err));
+            navigator.serviceWorker.register('sw.js', { scope: './' })
+            .then(reg => console.log('SW registrado:', reg.scope))
+            .catch(err => console.log('SW não registrado:', err));
+        }
+
+        // Detectar se já está instalado
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            installBtn.style.display = 'none';
         }
 
         let deferredPrompt;
@@ -404,11 +414,11 @@
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            installBtn.style.display = 'block';
+            installBtn.classList.add('visible');
         });
 
         installBtn.addEventListener('click', () => {
-            installBtn.style.display = 'none';
+            installBtn.classList.remove('visible');
             deferredPrompt.prompt();
             deferredPrompt.userChoice.then((choiceResult) => {
                 if (choiceResult.outcome === 'accepted') {
@@ -473,7 +483,8 @@
 
                 // Verificar criptografia
                 const hasKey = localStorage.getItem('dj_brow_crypto_key');
-                if (hasKey) {
+                const hasBasic = localStorage.getItem('dj_brow_basic_pass');
+                if (hasKey || hasBasic) {
                     document.getElementById('securityNotice').style.display = 'none';
                 }
 
