@@ -300,11 +300,17 @@
     <div class="modal-content">
         <h3>💾 Gerenciar Backup</h3>
         <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">
-            Cole aqui um backup anterior para restaurar seus dados:
+            Escolha como deseja gerenciar seu backup:
         </p>
-        <textarea id="backupText" placeholder="Cole o JSON do backup aqui..."></textarea>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;">
+            <button class="btn btn-backup" onclick="exportBackup(); closeBackupModal();">
+                📥 Exportar Backup (Baixar Arquivo)
+            </button>
+            <button class="btn btn-success" onclick="importBackupFile(); closeBackupModal();">
+                📤 Restaurar de Arquivo
+            </button>
+        </div>
         <div class="modal-buttons">
-            <button class="btn btn-backup" onclick="importBackup()">Restaurar</button>
             <button class="btn btn-outline" onclick="closeBackupModal()">Fechar</button>
         </div>
     </div>
@@ -480,17 +486,28 @@ _Para reservar a data, sinal de 20%._
     }
 
     function exportBackup() {
-        const data = {
-            version: '4.0',
-            timestamp: new Date().toLocaleString('pt-BR'),
-            orcamento: JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'),
-            historico: JSON.parse(localStorage.getItem('dj_brow_contracts_history') || '[]'),
-            contrato: JSON.parse(localStorage.getItem('dj_brow_contract_data_v3') || '{}')
+        DJ_BROWW.exportToFile();
+        DJ_BROWW.toast('✅ Backup baixado! Salve em local seguro.', 'success', 5000);
+    }
+
+    function importBackupFile() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const result = await DJ_BROWW.importFromFile(file);
+                if (result) {
+                    DJ_BROWW.toast('✅ Backup restaurado! Recarregando...', 'success');
+                    setTimeout(() => location.reload(), 1500);
+                }
+            } catch (err) {
+                DJ_BROWW.toast('Erro: ' + err.message, 'error', 5000);
+            }
         };
-        const json = JSON.stringify(data, null, 2);
-        navigator.clipboard.writeText(json).then(() => {
-            DJ_BROWW.toast('Backup copiado! Cole em um lugar seguro.', 'success', 5000);
-        });
+        input.click();
     }
 
     function openBackupModal() {
@@ -501,31 +518,7 @@ _Para reservar a data, sinal de 20%._
         document.getElementById('backupModal').classList.remove('active');
     }
 
-    function importBackup() {
-        const text = document.getElementById('backupText').value;
-        try {
-            const data = JSON.parse(text);
-            if (data.orcamento) {
-                Object.keys(data.orcamento).forEach(id => {
-                    if (document.getElementById(id)) {
-                        document.getElementById(id).value = data.orcamento[id];
-                    }
-                });
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(data.orcamento));
-            }
-            if (data.historico) {
-                localStorage.setItem('dj_brow_contracts_history', JSON.stringify(data.historico));
-            }
-            if (data.contrato) {
-                localStorage.setItem('dj_brow_contract_data_v3', JSON.stringify(data.contrato));
-            }
-            DJ_BROWW.toast('Backup restaurado com sucesso!', 'success');
-            calculate();
-            closeBackupModal();
-        } catch (e) {
-            DJ_BROWW.toast('Erro ao restaurar backup. Verifique o formato.', 'error');
-        }
-    }
+
 
     function resetApp() { 
         DJ_BROWW.confirm('Tem certeza que deseja limpar todos os campos?', () => {

@@ -317,9 +317,15 @@
 
         <!-- Aviso de Segurança -->
         <div class="security-notice" id="securityNotice">
+            <span>💾</span>
+            <span>Faça backup regularmente! Seus dados ficam apenas neste navegador.</span>
+            <button onclick="exportBackupFile()">📥 Exportar Backup</button>
+        </div>
+
+        <div class="security-notice" id="cryptoNotice" style="display:none; background:rgba(0,255,136,0.05);">
             <span>🔒</span>
-            <span>Proteja seus dados com criptografia. Configure uma senha mestra.</span>
-            <button onclick="setupEncryption()">Ativar Proteção</button>
+            <span>Criptografia disponível (HTTPS). Proteja com senha mestra.</span>
+            <button onclick="setupEncryption()">Ativar Criptografia</button>
         </div>
 
         <!-- Stats Rápidas -->
@@ -386,6 +392,11 @@
         </div>
 
         <button id="installBtn" class="install-btn">📱 Instalar Aplicativo</button>
+
+        <div style="display:flex; gap:10px; justify-content:center; margin:20px 0;">
+            <button onclick="exportBackupFile()" class="btn btn-outline btn-sm">💾 Exportar Backup</button>
+            <button onclick="importBackupFile()" class="btn btn-outline btn-sm">📤 Restaurar Backup</button>
+        </div>
 
         <div class="version-info">
             <p>DJ Brow v4.0 — Sistema de Gestão Profissional</p>
@@ -481,11 +492,19 @@
                     }).join('');
                 }
 
-                // Verificar criptografia
-                const hasKey = localStorage.getItem('dj_brow_crypto_key');
-                const hasBasic = localStorage.getItem('dj_brow_basic_pass');
-                if (hasKey || hasBasic) {
+                // Verificar se já tem backup recente
+                const lastBackup = localStorage.getItem('dj_brow_last_backup');
+                const today = new Date().toDateString();
+                if (lastBackup === today) {
                     document.getElementById('securityNotice').style.display = 'none';
+                }
+
+                // Verificar se criptografia está disponível e ativada
+                const hasKey = localStorage.getItem('dj_brow_crypto_key');
+                if (!hasKey && DJ_BROWW.checkCrypto()) {
+                    document.getElementById('cryptoNotice').style.display = 'flex';
+                } else {
+                    document.getElementById('cryptoNotice').style.display = 'none';
                 }
 
             } catch (e) {

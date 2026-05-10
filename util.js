@@ -10,32 +10,21 @@ const DJ_BROWW = {
     // ===== CRIPTOGRAFIA AES (com fallback para HTTP) =====
     cryptoAvailable: false,
 
-    checkCrypto() {
+        checkCrypto() {
         try {
-            this.cryptoAvailable = !!(window.crypto && crypto.subtle && 
-                window.location.protocol === 'https:' || 
-                window.location.hostname === 'localhost' ||
-                window.location.hostname === '127.0.0.1');
+            const isSecure = window.isSecureContext || 
+                           window.location.protocol === 'https:' || 
+                           window.location.hostname === 'localhost' ||
+                           window.location.hostname === '127.0.0.1' ||
+                           window.location.hostname.includes('github.io');
+            const hasSubtle = !!(window.crypto && crypto.subtle);
+            this.cryptoAvailable = isSecure && hasSubtle;
+            console.log('Crypto disponível:', this.cryptoAvailable, '| Protocolo:', window.location.protocol, '| Host:', window.location.hostname);
         } catch(e) {
+            console.warn('Erro ao verificar crypto:', e);
             this.cryptoAvailable = false;
         }
         return this.cryptoAvailable;
-    },
-
-    async initCrypto() {
-        if (!this.checkCrypto()) return;
-        const savedKey = localStorage.getItem('dj_brow_crypto_key');
-        if (savedKey) {
-            try {
-                const keyData = JSON.parse(savedKey);
-                this.cryptoKey = await crypto.subtle.importKey(
-                    'jwk', keyData, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
-                );
-            } catch(e) {
-                console.warn('Erro ao carregar chave de criptografia:', e);
-                this.cryptoKey = null;
-            }
-        }
     },
 
     async generateKey(password) {
@@ -356,6 +345,103 @@ const DJ_BROWW = {
             document.title = originalTitle;
             element.classList.remove('print-optimized');
         }, 1000);
+    },
+
+    // ===== BACKUP POR ARQUIVO =====
+    exportToFile(filename = null) {
+        const data = {
+            version: '4.0',
+            exportedAt: new Date().toISOString(),
+            device: navigator.userAgent,
+            orcamento: JSON.parse(localStorage.getItem('dj_brow_orcamento_data_v4') || '{}'),
+            historico: JSON.parse(localStorage.getItem('dj_brow_contracts_history') || '[]'),
+            contrato: JSON.parse(localStorage.getItem('dj_brow_contract_data_v3') || '{}'),
+            signature: localStorage.getItem('dj_brow_signature'),
+            cryptoKey: localStorage.getItem('dj_brow_crypto_key'),
+            recibos: {}
+        };
+
+        // Coletar contadores de recibo
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('dj_brow_recibo_num_')) {
+                data.recibos[key] = localStorage.getItem(key);
+            }
+        }
+
+        const json = JSON.stringify(data, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        const date = new Date().toISOString().split('T')[0];
+        a.download = filename || `dj_brow_backup_${date}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        return true;
+    },
+
+    async importFromFile(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+
+                    if (!data.version) {
+                        throw new Error('Arquivo de backup inválido');
+                    }
+
+                    // Confirmar antes de sobrescrever
+                    const confirmRestore = confirm(
+                        `Restaurar backup de ${new Date(data.exportedAt).toLocaleString('pt-BR')}?\n\n` +
+                        `Este backup contém:
+` +
+                        `• ${(data.historico || []).length} eventos no histórico\n` +
+                        `• Dados do orçamento\n` +
+                        `• Dados do contratado\n\n` +
+                        `⚠️ Isso SUBSTITUIRÁ seus dados atuais!`
+                    );
+
+                    if (!confirmRestore) {
+                        resolve(false);
+                        return;
+                    }
+
+                    // Restaurar dados
+                    if (data.orcamento) {
+                        localStorage.setItem('dj_brow_orcamento_data_v4', JSON.stringify(data.orcamento));
+                    }
+                    if (data.historico) {
+                        localStorage.setItem('dj_brow_contracts_history', JSON.stringify(data.historico));
+                    }
+                    if (data.contrato) {
+                        localStorage.setItem('dj_brow_contract_data_v3', JSON.stringify(data.contrato));
+                    }
+                    if (data.signature) {
+                        localStorage.setItem('dj_brow_signature', data.signature);
+                    }
+                    if (data.cryptoKey) {
+                        localStorage.setItem('dj_brow_crypto_key', data.cryptoKey);
+                    }
+                    if (data.recibos) {
+                        Object.keys(data.recibos).forEach(key => {
+                            localStorage.setItem(key, data.recibos[key]);
+                        });
+                    }
+
+                    resolve(true);
+                } catch (err) {
+                    reject(err);
+                }
+            };
+            reader.onerror = () => reject(new Error('Erro ao ler arquivo'));
+            reader.readAsText(file);
+        });
     },
 
     // ===== CONTADOR DE RECIBO =====

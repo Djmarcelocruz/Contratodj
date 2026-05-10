@@ -273,6 +273,13 @@
                     <input type="text" id="evt_valor" placeholder="0,00" required oninput="maskMoneyInput(this)">
                 </div>
                 <div class="form-group">
+                    <label>Valor da Hora Extra (R$)</label>
+                    <input type="text" id="evt_hora_extra" placeholder="0,00" oninput="maskMoneyInput(this)">
+                    <small style="color:var(--text-muted); font-size:0.75rem;">
+                        Deixe em branco se não quiser oferecer hora extra
+                    </small>
+                </div>
+                <div class="form-group">
                     <label>Forma de Pagamento</label>
                     <select id="evt_pagamento">
                         <option value="50% sinal + 50% dia do evento">50% sinal + 50% dia do evento</option>
@@ -326,6 +333,56 @@
 
     <script src="util.js"></script>
     <script>
+        // ===== CÁLCULO DE DURAÇÃO DO EVENTO =====
+        function calcularDuracao(inicio, termino) {
+            if (!inicio || !termino) return null;
+
+            const [h1, m1] = inicio.split(':').map(Number);
+            const [h2, m2] = termino.split(':').map(Number);
+
+            let minutosInicio = h1 * 60 + m1;
+            let minutosTermino = h2 * 60 + m2;
+
+            // Se o término é no dia seguinte (ex: 23:00 às 02:00)
+            if (minutosTermino < minutosInicio) {
+                minutosTermino += 24 * 60;
+            }
+
+            const duracaoMinutos = minutosTermino - minutosInicio;
+            const horas = Math.floor(duracaoMinutos / 60);
+            const minutos = duracaoMinutos % 60;
+
+            if (minutos === 0) {
+                return `${horas} hora${horas > 1 ? 's' : ''}`;
+            }
+            return `${horas}h ${minutos.toString().padStart(2, '0')}min`;
+        }
+
+        // Atualizar preview quando mudar horários
+        function updateDurationPreview() {
+            const inicio = document.getElementById('evt_inicio').value;
+            const termino = document.getElementById('evt_termino').value;
+            const duracao = calcularDuracao(inicio, termino);
+
+            // Mostrar duração ao lado dos inputs se ambos preenchidos
+            const duracaoEl = document.getElementById('duracaoPreview');
+            if (duracao) {
+                if (!duracaoEl) {
+                    const div = document.createElement('div');
+                    div.id = 'duracaoPreview';
+                    div.style.cssText = 'margin-top:8px; font-size:0.85rem; color:var(--primary); font-weight:700;';
+                    document.getElementById('evt_termino').parentNode.appendChild(div);
+                }
+                document.getElementById('duracaoPreview').textContent = `⏱️ Duração: ${duracao}`;
+            } else if (duracaoEl) {
+                duracaoEl.remove();
+            }
+        }
+
+        document.getElementById('evt_inicio').addEventListener('change', updateDurationPreview);
+        document.getElementById('evt_termino').addEventListener('change', updateDurationPreview);
+
+        // ===== CONFIGURAÇÃO DE CLÁUSULAS POR TIPO DE EVENTO =====
         // ===== CONFIGURAÇÃO DE CLÁUSULAS POR TIPO DE EVENTO =====
         const EVENT_CLAUSES = {
             'Casamento': {
@@ -573,6 +630,7 @@
             const valorNumerico = DJ_BROWW.unmaskMoney(val('evt_valor'));
             const dataFormatada = DJ_BROWW.formatDateLong(val('evt_data'));
             const dataCurta = DJ_BROWW.formatDateBR(val('evt_data'));
+            const duracaoEvento = calcularDuracao(val('evt_inicio'), val('evt_termino')) || 'horário a definir';
 
             // Cláusulas específicas do tipo de evento
             const eventConfig = EVENT_CLAUSES[tipoEvento] || EVENT_CLAUSES['Outro'];
@@ -583,9 +641,22 @@
                 </div>
             `).join('');
 
+            // Cláusula de hora extra (se preenchida)
+            const valorHoraExtra = DJ_BROWW.unmaskMoney(val('evt_hora_extra'));
+            let horaExtraHtml = '';
+            if (valorHoraExtra > 0) {
+                horaExtraHtml = `
+                    <div class="contract-section">
+                        <h3>CLÁUSULA ${eventConfig.specific.length + 4} — HORA EXTRA</h3>
+                        <p>Caso o CONTRATANTE solicite prorrogação do horário contratado durante o evento, será cobrado valor adicional de <strong>${valorHoraExtra.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</strong> por hora ou fração de hora iniciada.
+                        <br><br>O pagamento da hora extra deverá ser efetuado <strong>imediatamente</strong>, no ato da solicitação, via Pix, dinheiro ou transferência bancária. Não será permitida a prorrogação do serviço sem o pagamento prévio confirmado.
+                        <br><br>O CONTRATADO reserva-se o direito de não aceitar a prorrogação caso haja compromisso posterior ou restrições do local do evento.</p>
+                    </div>`;
+            }
+
             // Cláusulas adicionais opcionais
             let optionalClausesHtml = '';
-            let clauseNum = eventConfig.specific.length + 4;
+            let clauseNum = eventConfig.specific.length + 4 + (valorHoraExtra > 0 ? 1 : 0);
 
             if (document.getElementById('clause_cancel').checked) {
                 optionalClausesHtml += `
@@ -645,7 +716,8 @@
                     no evento de <strong>${DJ_BROWW.escapeHtml(tipoEvento)}</strong>, 
                     a ser realizado no dia <strong>${dataCurta}</strong>, 
                     no local <strong>${DJ_BROWW.escapeHtml(val('evt_local'))}</strong>, 
-                    no horário das <strong>${val('evt_inicio')}</strong> às <strong>${val('evt_termino')}</strong>.</p>
+                    no horário das <strong>${val('evt_inicio')}</strong> às <strong>${val('evt_termino')}</strong> 
+                    (<strong>${duracaoEvento}</strong> de serviço contratado).</p>
                 </div>
 
                 <div class="contract-section">
@@ -660,11 +732,13 @@
                     <p>a) Comparecer com antecedência mínima de 60 minutos para montagem e testes;<br>
                     b) Fornecer equipamento de som e iluminação em perfeito estado;<br>
                     c) Manter postura profissional durante todo o evento;<br>
-                    d) Respeitar o horário contratado, com tolerância de 15 minutos;<br>
+                    d) Respeitar o horário contratado de <strong>${duracaoEvento}</strong>, com tolerância de 15 minutos para encerramento;<br>
                     e) Adaptar o serviço às especificidades do tipo de evento contratado.</p>
                 </div>
 
                 ${specificClausesHtml}
+
+                ${horaExtraHtml}
 
                 ${optionalClausesHtml}
 
@@ -752,6 +826,7 @@ h2{text-align:center;text-transform:uppercase;letter-spacing:2px;border-bottom:2
                 termino: val('evt_termino'),
                 status: 'A Concluir',
                 pagamento: val('evt_pagamento'),
+                horaExtra: DJ_BROWW.unmaskMoney(val('evt_hora_extra')),
                 createdAt: new Date().toISOString()
             };
 
@@ -791,6 +866,21 @@ h2{text-align:center;text-transform:uppercase;letter-spacing:2px;border-bottom:2
                     if (evento.data) document.getElementById('evt_data').value = evento.data;
                     if (evento.inicio) document.getElementById('evt_inicio').value = evento.inicio;
                     if (evento.termino) document.getElementById('evt_termino').value = evento.termino;
+                } catch(e) {}
+            }
+
+            // Calcular sugestão de hora extra baseada no valor total
+            const orcamentoCompleto = localStorage.getItem('dj_brow_orcamento_completo');
+            if (orcamentoCompleto) {
+                try {
+                    const orc = JSON.parse(orcamentoCompleto);
+                    if (orc.hours && orc.rate) {
+                        const valorHora = orc.hours * orc.rate;
+                        const sugestao = valorHora * 1.5; // 50% a mais que a hora normal
+                        if (sugestao > 0 && !document.getElementById('evt_hora_extra').value) {
+                            document.getElementById('evt_hora_extra').value = sugestao.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                        }
+                    }
                 } catch(e) {}
             }
 
