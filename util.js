@@ -1,16 +1,16 @@
 /**
- * DJ BROWW - Utilitários Compartilhados v4.0
- * Criptografia, sanitização, máscaras, notificações, paginação
+ * DJ BROWW - Utilitários Compartilhados v4.1
+ * Criptografia, sanitização, máscaras, notificações, paginação, ViaCEP
  */
 
 const DJ_BROWW = {
-    version: '4.0',
+    version: '4.1',
     cryptoKey: null,
 
-    // ===== CRIPTOGRAFIA AES (com fallback para HTTP) =====
+    // ===== CRIPTOGRAFIA AES =====
     cryptoAvailable: false,
 
-        checkCrypto() {
+    checkCrypto() {
         try {
             const isSecure = window.isSecureContext || 
                            window.location.protocol === 'https:' || 
@@ -25,6 +25,27 @@ const DJ_BROWW = {
             this.cryptoAvailable = false;
         }
         return this.cryptoAvailable;
+    },
+
+    async initCrypto() {
+        this.checkCrypto();
+        if (!this.cryptoAvailable) return false;
+
+        const savedKey = localStorage.getItem('dj_brow_crypto_key');
+        if (savedKey) {
+            try {
+                const jwk = JSON.parse(savedKey);
+                this.cryptoKey = await crypto.subtle.importKey(
+                    'jwk', jwk, { name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']
+                );
+                console.log('Chave de criptografia carregada');
+                return true;
+            } catch(e) {
+                console.warn('Erro ao carregar chave crypto:', e);
+                this.cryptoKey = null;
+            }
+        }
+        return false;
     },
 
     async generateKey(password) {
@@ -85,6 +106,25 @@ const DJ_BROWW = {
         }
     },
 
+    // ===== VIA CEP =====
+    async fetchCEP(cep) {
+        const cleanCEP = cep.replace(/\D/g, '');
+        if (cleanCEP.length !== 8) return null;
+        try {
+            const res = await fetch(`https://viacep.com.br/ws/${cleanCEP}/json/`);
+            const data = await res.json();
+            if (data.erro) return null;
+            return data;
+        } catch(e) {
+            console.warn('Erro ViaCEP:', e);
+            return null;
+        }
+    },
+
+    maskCEP(value) {
+        return value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2').substring(0, 9);
+    },
+
     // ===== SANITIZAÇÃO XSS =====
     escapeHtml(text) {
         if (typeof text !== 'string') return '';
@@ -136,7 +176,7 @@ const DJ_BROWW = {
     // ===== VALIDAÇÃO =====
     validateCPF(cpf) {
         cpf = cpf.replace(/\D/g, '');
-        if (cpf.length !== 11 || /^(.)+$/.test(cpf)) return false;
+        if (cpf.length !== 11 || /^(.)\1+$/.test(cpf)) return false;
         let sum = 0, remainder;
         for (let i = 1; i <= 9; i++) sum += parseInt(cpf.substring(i-1, i)) * (11 - i);
         remainder = (sum * 10) % 11;
@@ -163,7 +203,7 @@ const DJ_BROWW = {
         return result === parseInt(digits.charAt(1));
     },
 
-    // ===== HASH PARA ASSINATURA =====
+    // ===== HASH =====
     async sha256(message) {
         const encoder = new TextEncoder();
         const data = encoder.encode(message);
@@ -172,7 +212,7 @@ const DJ_BROWW = {
         return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     },
 
-    // ===== NOTIFICAÇÕES TOAST =====
+    // ===== TOAST =====
     toast(message, type = 'success', duration = 3000) {
         let container = document.querySelector('.toast-container');
         if (!container) {
@@ -180,26 +220,18 @@ const DJ_BROWW = {
             container.className = 'toast-container';
             document.body.appendChild(container);
         }
-
-        const icons = {
-            success: '✅',
-            error: '❌',
-            warning: '⚠️',
-            info: 'ℹ️'
-        };
-
+        const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.innerHTML = `<span>${icons[type]}</span><span>${this.escapeHtml(message)}</span>`;
         container.appendChild(toast);
-
         setTimeout(() => {
             toast.classList.add('removing');
             setTimeout(() => toast.remove(), 300);
         }, duration);
     },
 
-    // ===== CONFIRMAÇÃO MODAL =====
+    // ===== CONFIRMAÇÃO =====
     confirm(message, onConfirm, onCancel = null) {
         const overlay = document.createElement('div');
         overlay.className = 'modal-overlay active';
@@ -215,15 +247,8 @@ const DJ_BROWW = {
             </div>
         `;
         document.body.appendChild(overlay);
-
-        overlay.querySelector('#confirmYes').onclick = () => {
-            overlay.remove();
-            onConfirm();
-        };
-        overlay.querySelector('#confirmNo').onclick = () => {
-            overlay.remove();
-            if (onCancel) onCancel();
-        };
+        overlay.querySelector('#confirmYes').onclick = () => { overlay.remove(); onConfirm(); };
+        overlay.querySelector('#confirmNo').onclick = () => { overlay.remove(); if (onCancel) onCancel(); };
         overlay.onclick = (e) => { if (e.target === overlay) { overlay.remove(); if (onCancel) onCancel(); } };
     },
 
@@ -236,36 +261,10 @@ const DJ_BROWW = {
         const end = start + perPage;
         return {
             items: items.slice(start, end),
-            currentPage,
-            totalPages,
-            total,
+            currentPage, totalPages, total,
             hasNext: currentPage < totalPages,
             hasPrev: currentPage > 1
         };
-    },
-
-    renderPagination(container, pagination, onPageChange) {
-        if (pagination.totalPages <= 1) {
-            container.innerHTML = '';
-            return;
-        }
-
-        let html = '<div class="pagination">';
-        html += `<button ${pagination.hasPrev ? '' : 'disabled'} onclick="${onPageChange}(${pagination.currentPage - 1})">←</button>`;
-
-        for (let i = 1; i <= pagination.totalPages; i++) {
-            if (i === 1 || i === pagination.totalPages || (i >= pagination.currentPage - 1 && i <= pagination.currentPage + 1)) {
-                html += `<button class="${i === pagination.currentPage ? 'active' : ''}" onclick="${onPageChange}(${i})">${i}</button>`;
-            } else if (i === pagination.currentPage - 2 || i === pagination.currentPage + 2) {
-                html += '<span style="color:#666;">...</span>';
-            }
-        }
-
-        html += `<button ${pagination.hasNext ? '' : 'disabled'} onclick="${onPageChange}(${pagination.currentPage + 1})">→</button>`;
-        html += '</div>';
-        html += `<div class="pagination-info">Mostrando ${(pagination.currentPage - 1) * 10 + 1}-${Math.min(pagination.currentPage * 10, pagination.total)} de ${pagination.total}</div>`;
-
-        container.innerHTML = html;
     },
 
     // ===== DATA E HORA =====
@@ -326,31 +325,10 @@ const DJ_BROWW = {
         }
     },
 
-    // ===== EXPORTAR PDF =====
-    async generatePDF(elementId, filename) {
-        const element = document.getElementById(elementId);
-        if (!element) return;
-
-        // Usar print otimizado
-        const originalTitle = document.title;
-        document.title = filename.replace('.pdf', '');
-
-        // Adicionar classe de print
-        element.classList.add('print-optimized');
-
-        window.print();
-
-        // Restaurar
-        setTimeout(() => {
-            document.title = originalTitle;
-            element.classList.remove('print-optimized');
-        }, 1000);
-    },
-
     // ===== BACKUP POR ARQUIVO =====
     exportToFile(filename = null) {
         const data = {
-            version: '4.0',
+            version: '4.1',
             exportedAt: new Date().toISOString(),
             device: navigator.userAgent,
             orcamento: JSON.parse(localStorage.getItem('dj_brow_orcamento_data_v4') || '{}'),
@@ -360,19 +338,15 @@ const DJ_BROWW = {
             cryptoKey: localStorage.getItem('dj_brow_crypto_key'),
             recibos: {}
         };
-
-        // Coletar contadores de recibo
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
             if (key && key.startsWith('dj_brow_recibo_num_')) {
                 data.recibos[key] = localStorage.getItem(key);
             }
         }
-
         const json = JSON.stringify(data, null, 2);
         const blob = new Blob([json], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
-
         const a = document.createElement('a');
         a.href = url;
         const date = new Date().toISOString().split('T')[0];
@@ -381,7 +355,7 @@ const DJ_BROWW = {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-
+        localStorage.setItem('dj_brow_last_backup', new Date().toDateString());
         return true;
     },
 
@@ -391,53 +365,27 @@ const DJ_BROWW = {
             reader.onload = async (e) => {
                 try {
                     const data = JSON.parse(e.target.result);
+                    if (!data.version) throw new Error('Arquivo de backup inválido');
 
-                    if (!data.version) {
-                        throw new Error('Arquivo de backup inválido');
-                    }
-
-                    // Confirmar antes de sobrescrever
                     const confirmRestore = confirm(
                         `Restaurar backup de ${new Date(data.exportedAt).toLocaleString('pt-BR')}?\n\n` +
-                        `Este backup contém:
-` +
+                        `Este backup contém:\n` +
                         `• ${(data.historico || []).length} eventos no histórico\n` +
                         `• Dados do orçamento\n` +
                         `• Dados do contratado\n\n` +
                         `⚠️ Isso SUBSTITUIRÁ seus dados atuais!`
                     );
+                    if (!confirmRestore) { resolve(false); return; }
 
-                    if (!confirmRestore) {
-                        resolve(false);
-                        return;
-                    }
-
-                    // Restaurar dados
-                    if (data.orcamento) {
-                        localStorage.setItem('dj_brow_orcamento_data_v4', JSON.stringify(data.orcamento));
-                    }
-                    if (data.historico) {
-                        localStorage.setItem('dj_brow_contracts_history', JSON.stringify(data.historico));
-                    }
-                    if (data.contrato) {
-                        localStorage.setItem('dj_brow_contract_data_v3', JSON.stringify(data.contrato));
-                    }
-                    if (data.signature) {
-                        localStorage.setItem('dj_brow_signature', data.signature);
-                    }
-                    if (data.cryptoKey) {
-                        localStorage.setItem('dj_brow_crypto_key', data.cryptoKey);
-                    }
-                    if (data.recibos) {
-                        Object.keys(data.recibos).forEach(key => {
-                            localStorage.setItem(key, data.recibos[key]);
-                        });
-                    }
+                    if (data.orcamento) localStorage.setItem('dj_brow_orcamento_data_v4', JSON.stringify(data.orcamento));
+                    if (data.historico) localStorage.setItem('dj_brow_contracts_history', JSON.stringify(data.historico));
+                    if (data.contrato) localStorage.setItem('dj_brow_contract_data_v3', JSON.stringify(data.contrato));
+                    if (data.signature) localStorage.setItem('dj_brow_signature', data.signature);
+                    if (data.cryptoKey) localStorage.setItem('dj_brow_crypto_key', data.cryptoKey);
+                    if (data.recibos) Object.keys(data.recibos).forEach(key => localStorage.setItem(key, data.recibos[key]));
 
                     resolve(true);
-                } catch (err) {
-                    reject(err);
-                }
+                } catch (err) { reject(err); }
             };
             reader.onerror = () => reject(new Error('Erro ao ler arquivo'));
             reader.readAsText(file);

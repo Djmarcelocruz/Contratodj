@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>DJ Brow — Contrato v4.0</title>
+    <title>DJ Brow — Contrato v4.1</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
     <style>
@@ -99,7 +99,7 @@
             padding-top: 5px;
         }
 
-.event-type-badge {
+        .event-type-badge {
             display: inline-block;
             background: var(--primary);
             color: #000;
@@ -121,6 +121,20 @@
             font-size: 0.85rem;
             display: none;
         }
+
+        .cep-loading {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--primary);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         @media print {
             .nav-menu, .btn, .card, h1, .no-print, .data-loaded-notice { 
@@ -185,16 +199,20 @@
                     <div class="grid">
                         <div class="form-group">
                             <label>CPF</label>
-                            <input type="text" id="contr_cpf" placeholder="000.000.000-00" maxlength="14">
+                            <input type="tel" id="contr_cpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric">
                         </div>
                         <div class="form-group">
                             <label>RG</label>
-                            <input type="text" id="contr_rg" placeholder="00.000.000-0">
+                            <input type="tel" id="contr_rg" placeholder="00.000.000-0" inputmode="numeric">
                         </div>
                     </div>
                     <div class="form-group">
+                        <label>CEP <span id="contr_cep_loading"></span></label>
+                        <input type="tel" id="contr_cep" placeholder="00000-000" maxlength="9" inputmode="numeric">
+                    </div>
+                    <div class="form-group">
                         <label>Endereço Completo</label>
-                        <input type="text" id="contr_end" placeholder="Rua, número, bairro, cidade - UF, CEP">
+                        <input type="text" id="contr_end" placeholder="Rua, número, bairro, cidade - UF">
                     </div>
                     <div class="form-group">
                         <label>Nome Artístico</label>
@@ -219,15 +237,45 @@
                 <div class="grid">
                     <div class="form-group">
                         <label>CPF/CNPJ</label>
-                        <input type="text" id="cli_cpf" required placeholder="000.000.000-00" maxlength="18">
+                        <input type="tel" id="cli_cpf" required placeholder="000.000.000-00" maxlength="18" inputmode="numeric">
                     </div>
                     <div class="form-group">
                         <label>Telefone (WhatsApp)</label>
-                        <input type="text" id="cli_tel" placeholder="(00) 00000-0000" maxlength="15" required>
+                        <input type="tel" id="cli_tel" placeholder="(00) 00000-0000" maxlength="15" required inputmode="tel">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>CEP do Cliente <span id="cli_cep_loading"></span></label>
+                    <input type="tel" id="cli_cep" placeholder="00000-000" maxlength="9" inputmode="numeric">
+                </div>
+                <div class="form-group">
+                    <label>Endereço do Cliente</label>
+                    <input type="text" id="cli_end" placeholder="Rua, número, bairro, cidade - UF">
+                </div>
+
+                <div class="section-title">3. Testemunhas (Opcional)</div>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Testemunha 1 — Nome</label>
+                        <input type="text" id="test1_nome" placeholder="Nome completo">
+                    </div>
+                    <div class="form-group">
+                        <label>Testemunha 1 — CPF</label>
+                        <input type="tel" id="test1_cpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric">
+                    </div>
+                </div>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Testemunha 2 — Nome</label>
+                        <input type="text" id="test2_nome" placeholder="Nome completo">
+                    </div>
+                    <div class="form-group">
+                        <label>Testemunha 2 — CPF</label>
+                        <input type="tel" id="test2_cpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric">
                     </div>
                 </div>
 
-                <div class="section-title">3. Detalhes do Evento</div>
+                <div class="section-title">4. Detalhes do Evento</div>
                 <div class="form-group">
                     <label>Tipo de Evento</label>
                     <select id="evt_tipo" required onchange="updateEventPreview()">
@@ -242,7 +290,6 @@
                     </select>
                 </div>
 
-                <!-- Preview das cláusulas específicas -->
                 <div id="eventPreview" class="card" style="display:none; background:rgba(0,255,136,0.03);">
                     <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">
                         Cláusulas específicas para este tipo de evento:
@@ -270,11 +317,11 @@
                 </div>
                 <div class="form-group">
                     <label>Valor Total (R$)</label>
-                    <input type="text" id="evt_valor" placeholder="0,00" required oninput="maskMoneyInput(this)">
+                    <input type="tel" id="evt_valor" placeholder="0,00" required oninput="maskMoneyInput(this)" inputmode="decimal">
                 </div>
                 <div class="form-group">
                     <label>Valor da Hora Extra (R$)</label>
-                    <input type="text" id="evt_hora_extra" placeholder="0,00" oninput="maskMoneyInput(this)">
+                    <input type="tel" id="evt_hora_extra" placeholder="0,00" oninput="maskMoneyInput(this)" inputmode="decimal">
                     <small style="color:var(--text-muted); font-size:0.75rem;">
                         Deixe em branco se não quiser oferecer hora extra
                     </small>
@@ -290,7 +337,7 @@
                     </select>
                 </div>
 
-                <div class="section-title">4. Cláusulas Adicionais (Opcionais)</div>
+                <div class="section-title">5. Cláusulas Adicionais (Opcionais)</div>
                 <div class="form-group">
                     <label style="display:flex; align-items:center; gap:8px; cursor:pointer; text-transform:none; font-size:0.85rem;">
                         <input type="checkbox" id="clause_cancel" checked style="width:auto; accent-color:var(--primary);">
@@ -333,47 +380,34 @@
 
     <script src="util.js"></script>
     <script>
-        // ===== CÁLCULO DE DURAÇÃO DO EVENTO =====
+        // ===== CÁLCULO DE DURAÇÃO =====
         function calcularDuracao(inicio, termino) {
             if (!inicio || !termino) return null;
-
             const [h1, m1] = inicio.split(':').map(Number);
             const [h2, m2] = termino.split(':').map(Number);
-
             let minutosInicio = h1 * 60 + m1;
             let minutosTermino = h2 * 60 + m2;
-
-            // Se o término é no dia seguinte (ex: 23:00 às 02:00)
-            if (minutosTermino < minutosInicio) {
-                minutosTermino += 24 * 60;
-            }
-
+            if (minutosTermino < minutosInicio) minutosTermino += 24 * 60;
             const duracaoMinutos = minutosTermino - minutosInicio;
             const horas = Math.floor(duracaoMinutos / 60);
             const minutos = duracaoMinutos % 60;
-
-            if (minutos === 0) {
-                return `${horas} hora${horas > 1 ? 's' : ''}`;
-            }
+            if (minutos === 0) return `${horas} hora${horas > 1 ? 's' : ''}`;
             return `${horas}h ${minutos.toString().padStart(2, '0')}min`;
         }
 
-        // Atualizar preview quando mudar horários
         function updateDurationPreview() {
             const inicio = document.getElementById('evt_inicio').value;
             const termino = document.getElementById('evt_termino').value;
             const duracao = calcularDuracao(inicio, termino);
-
-            // Mostrar duração ao lado dos inputs se ambos preenchidos
-            const duracaoEl = document.getElementById('duracaoPreview');
+            let duracaoEl = document.getElementById('duracaoPreview');
             if (duracao) {
                 if (!duracaoEl) {
-                    const div = document.createElement('div');
-                    div.id = 'duracaoPreview';
-                    div.style.cssText = 'margin-top:8px; font-size:0.85rem; color:var(--primary); font-weight:700;';
-                    document.getElementById('evt_termino').parentNode.appendChild(div);
+                    duracaoEl = document.createElement('div');
+                    duracaoEl.id = 'duracaoPreview';
+                    duracaoEl.style.cssText = 'margin-top:8px; font-size:0.85rem; color:var(--primary); font-weight:700;';
+                    document.getElementById('evt_termino').parentNode.appendChild(duracaoEl);
                 }
-                document.getElementById('duracaoPreview').textContent = `⏱️ Duração: ${duracao}`;
+                duracaoEl.textContent = `⏱️ Duração: ${duracao}`;
             } else if (duracaoEl) {
                 duracaoEl.remove();
             }
@@ -382,118 +416,96 @@
         document.getElementById('evt_inicio').addEventListener('change', updateDurationPreview);
         document.getElementById('evt_termino').addEventListener('change', updateDurationPreview);
 
-        // ===== CONFIGURAÇÃO DE CLÁUSULAS POR TIPO DE EVENTO =====
-        // ===== CONFIGURAÇÃO DE CLÁUSULAS POR TIPO DE EVENTO =====
+        // ===== VIA CEP =====
+        async function setupCEP(inputId, endId, loadingId) {
+            const cepInput = document.getElementById(inputId);
+            const endInput = document.getElementById(endId);
+            const loading = document.getElementById(loadingId);
+
+            cepInput.addEventListener('input', function(e) {
+                e.target.value = DJ_BROWW.maskCEP(e.target.value);
+            });
+
+            cepInput.addEventListener('blur', async function() {
+                const cep = cepInput.value.replace(/\D/g, '');
+                if (cep.length !== 8) return;
+
+                loading.innerHTML = '<span class="cep-loading"></span>';
+                const data = await DJ_BROWW.fetchCEP(cep);
+                loading.innerHTML = '';
+
+                if (data) {
+                    const endereco = `${data.logradouro}${data.logradouro && data.bairro ? ', ' : ''}${data.bairro} — ${data.localidade}/${data.uf}`;
+                    if (!endInput.value || endInput.value.trim() === '') {
+                        endInput.value = endereco;
+                        DJ_BROWW.toast('✅ Endereço preenchido automaticamente', 'success');
+                    } else {
+                        DJ_BROWW.toast('📍 Endereço encontrado! Atualizado.', 'info');
+                        endInput.value = endereco;
+                    }
+                } else {
+                    DJ_BROWW.toast('❌ CEP não encontrado', 'error');
+                }
+            });
+        }
+
+        setupCEP('contr_cep', 'contr_end', 'contr_cep_loading');
+        setupCEP('cli_cep', 'cli_end', 'cli_cep_loading');
+
+        // ===== CLÁUSULAS POR TIPO =====
         const EVENT_CLAUSES = {
             'Casamento': {
                 icon: '💍',
                 specific: [
-                    {
-                        title: 'REPERTÓRIO E CERIMÔNIA',
-                        text: 'O CONTRATADO se compromete a respeitar a lista de músicas indicada pelo CONTRATANTE para momentos especiais (entrada da noiva, primeira dança, cortar o bolo, etc.), com até 5 (cinco) trocas de música sem custo adicional. Alterações de última hora serão aceitas mediante disponibilidade técnica.'
-                    },
-                    {
-                        title: 'VESTIMENTA E POSTURA',
-                        text: 'O CONTRATADO comparecerá adequadamente vestido conforme o dress code do evento (social/esporte fino), mantendo postura profissional durante toda a cerimônia e festa. O uso de uniforme da marca do CONTRATADO é permitido desde que discreto.'
-                    },
-                    {
-                        title: 'COORDENAÇÃO COM FOTÓGRAFO E CERIMONIALISTA',
-                        text: 'O CONTRATADO se compromete a coordenar com o cerimonialista e equipe de foto/filmagem para sincronização de iluminação e música nos momentos-chave da cerimônia.'
-                    }
+                    { title: 'REPERTÓRIO E CERIMÔNIA', text: 'O CONTRATADO se compromete a respeitar a lista de músicas indicada pelo CONTRATANTE para momentos especiais (entrada da noiva, primeira dança, cortar o bolo, etc.), com até 5 (cinco) trocas de música sem custo adicional.' },
+                    { title: 'VESTIMENTA E POSTURA', text: 'O CONTRATADO comparecerá adequadamente vestido conforme o dress code do evento (social/esporte fino), mantendo postura profissional durante toda a cerimônia e festa.' },
+                    { title: 'COORDENAÇÃO COM CERIMONIALISTA', text: 'O CONTRATADO se compromete a coordenar com o cerimonialista e equipe de foto/filmagem para sincronização de iluminação e música nos momentos-chave.' }
                 ]
             },
             'Aniversário': {
                 icon: '🎂',
                 specific: [
-                    {
-                        title: 'REPERTÓRIO POR FAIXA ETÁRIA',
-                        text: 'O CONTRATADO adaptará o repertório conforme a faixa etária predominante dos convidados, respeitando a classificação indicada pelo CONTRATANTE (ex: festa infantil, teen, adulto, melhor idade). Músicas com conteúdo explícito serão evitadas em festas com crianças presentes.'
-                    },
-                    {
-                        title: 'INTERAÇÃO E ANIMAÇÃO',
-                        text: 'O CONTRATADO poderá utilizar microfone para interação com os convidados, conduzir brincadeiras e animar momentos especiais (parabéns, brinde, etc.), conforme solicitado pelo CONTRATANTE previamente.'
-                    },
-                    {
-                        title: 'HORÁRIO FLEXÍVEL',
-                        text: 'Para festas de aniversário, tolerância de até 30 minutos além do horário contratado será concedida sem custo adicional, desde que não haja restrição do local do evento.'
-                    }
+                    { title: 'REPERTÓRIO POR FAIXA ETÁRIA', text: 'O CONTRATADO adaptará o repertório conforme a faixa etária predominante dos convidados, respeitando a classificação indicada pelo CONTRATANTE.' },
+                    { title: 'INTERAÇÃO E ANIMAÇÃO', text: 'O CONTRATADO poderá utilizar microfone para interação com os convidados, conduzir brincadeiras e animar momentos especiais, conforme solicitado previamente.' },
+                    { title: 'HORÁRIO FLEXÍVEL', text: 'Para festas de aniversário, tolerância de até 30 minutos além do horário contratado será concedida sem custo adicional.' }
                 ]
             },
             'Formatura': {
                 icon: '🎓',
                 specific: [
-                    {
-                        title: 'REPERTÓRIO APROVADO',
-                        text: 'O repertório de músicas para a cerimônia de colação de grau deverá ser previamente aprovado pela comissão de formatura. O CONTRATADO se compromete a disponibilizar a lista completa para aprovação com 7 dias de antecedência.'
-                    },
-                    {
-                        title: 'EQUIPAMENTO ADICIONAL',
-                        text: 'Para formaturas, o CONTRATADO poderá fornecer sistema de som adicional para cerimônia e festa em ambientes separados, mediante acordo prévio e possível custo extra conforme orçamento específico.'
-                    },
-                    {
-                        title: 'PATROCÍNIO E DIVULGAÇÃO',
-                        text: 'Caso a formatura possua patrocinadores, o CONTRATADO poderá veicular vinhetas publicitárias entre os sets musicais, limitadas a 30 segundos cada e no máximo 3 por hora, desde que previamente combinado.'
-                    }
+                    { title: 'REPERTÓRIO APROVADO', text: 'O repertório de músicas para a cerimônia de colação de grau deverá ser previamente aprovado pela comissão de formatura, com 7 dias de antecedência.' },
+                    { title: 'EQUIPAMENTO ADICIONAL', text: 'Para formaturas, o CONTRATADO poderá fornecer sistema de som adicional para cerimônia e festa em ambientes separados, mediante acordo prévio.' },
+                    { title: 'PATROCÍNIO E DIVULGAÇÃO', text: 'Caso a formatura possua patrocinadores, o CONTRATADO poderá veicular vinhetas publicitárias entre os sets musicais, limitadas a 30 segundos cada e no máximo 3 por hora.' }
                 ]
             },
             'Corporativo': {
                 icon: '🏢',
                 specific: [
-                    {
-                        title: 'CONFIDENCIALIDADE',
-                        text: 'O CONTRATADO se compromete a manter sigilo sobre informações, discursos, apresentações e demais conteúdos do evento corporativo. Não será permitida a divulgação de fotos, vídeos ou informações sem autorização expressa por escrito do CONTRATANTE.'
-                    },
-                    {
-                        title: 'IDENTIDADE VISUAL E MARCA',
-                        text: 'O CONTRATADO poderá adaptar a iluminação e projeções com as cores e logomarca da empresa CONTRATANTE, desde que os arquivos digitais sejam fornecidos com 48h de antecedência em formato compatível.'
-                    },
-                    {
-                        title: 'REPERTÓRIO CORPORATIVO',
-                        text: 'O CONTRATADO manterá repertório adequado ao ambiente corporativo, evitando músicas com conteúdo explícito, ofensivo ou político-partidário. O volume será controlado para permitir conversas durante coquetéis e networking.'
-                    }
+                    { title: 'CONFIDENCIALIDADE', text: 'O CONTRATADO se compromete a manter sigilo sobre informações, discursos, apresentações e demais conteúdos do evento corporativo.' },
+                    { title: 'IDENTIDADE VISUAL E MARCA', text: 'O CONTRATADO poderá adaptar a iluminação e projeções com as cores e logomarca da empresa, desde que os arquivos sejam fornecidos com 48h de antecedência.' },
+                    { title: 'REPERTÓRIO CORPORATIVO', text: 'O CONTRATADO manterá repertório adequado ao ambiente corporativo, evitando músicas com conteúdo explícito, ofensivo ou político-partidário.' }
                 ]
             },
             'Festa Privada': {
                 icon: '🎉',
                 specific: [
-                    {
-                        title: 'PRIVACIDADE E LISTA DE CONVIDADOS',
-                        text: 'O CONTRATADO se compromete a não divulgar informações sobre o evento, local, data ou lista de convidados. A presença de pessoas não autorizadas na área técnica não será permitida.'
-                    },
-                    {
-                        title: 'REPERTÓRIO PERSONALIZADO',
-                        text: 'O CONTRATANTE poderá enviar uma playlist sugerida com até 20 músicas prioritárias. O CONTRATADO se compromete a incluir pelo menos 70% delas no set, respeitando a fluidez musical.'
-                    },
-                    {
-                        title: 'HORÁRIO ESTENDIDO',
-                        text: 'Para festas privadas em residências ou espaços exclusivos, o CONTRATADO poderá estender o horário mediante acordo prévio e pagamento de hora extra conforme valor estabelecido no orçamento.'
-                    }
+                    { title: 'PRIVACIDADE', text: 'O CONTRATADO se compromete a não divulgar informações sobre o evento, local, data ou lista de convidados.' },
+                    { title: 'REPERTÓRIO PERSONALIZADO', text: 'O CONTRATANTE poderá enviar uma playlist sugerida com até 20 músicas prioritárias. O CONTRATADO se compromete a incluir pelo menos 70% delas no set.' },
+                    { title: 'HORÁRIO ESTENDIDO', text: 'Para festas privadas em residências ou espaços exclusivos, o CONTRATADO poderá estender o horário mediante acordo prévio e pagamento de hora extra.' }
                 ]
             },
             'Evento Público': {
                 icon: '🎪',
                 specific: [
-                    {
-                        title: 'ALVARÁS E PERMISSÕES',
-                        text: 'O CONTRATANTE declara possuir todos os alvarás, licenças e autorizações necessárias para realização do evento público. O CONTRATADO não se responsabiliza por problemas com fiscalização ou falta de documentação.'
-                    },
-                    {
-                        title: 'RESPONSABILIDADE CIVIL',
-                        text: 'Para eventos públicos com grande público, o CONTRATANTE deverá possuir seguro de responsabilidade civil. O CONTRATADO não se responsabiliza por acidentes causados por terceiros, estrutura do local ou comportamento do público.'
-                    },
-                    {
-                        title: 'SONORIZAÇÃO E VIZINHANÇA',
-                        text: 'O CONTRATADO seguirá os limites de volume estabelecidos pelo CONTRATANTE e órgãos competentes. O CONTRATANTE se responsabiliza por notificar vizinhos e obter autorizações necessárias para eventos com som ao ar livre.'
-                    }
+                    { title: 'ALVARÁS E PERMISSÕES', text: 'O CONTRATANTE declara possuir todos os alvarás, licenças e autorizações necessárias para realização do evento público.' },
+                    { title: 'RESPONSABILIDADE CIVIL', text: 'Para eventos públicos com grande público, o CONTRATANTE deverá possuir seguro de responsabilidade civil.' },
+                    { title: 'SONORIZAÇÃO E VIZINHANÇA', text: 'O CONTRATADO seguirá os limites de volume estabelecidos pelo CONTRATANTE e órgãos competentes.' }
                 ]
             },
             'Outro': {
                 icon: '📌',
                 specific: [
-                    {
-                        title: 'ESPECIFICAÇÕES DO EVENTO',
-                        text: 'O CONTRATANTE deverá informar por escrito (WhatsApp ou e-mail) todas as especificidades do evento, incluindo tipo de público, ambiente, necessidades especiais e expectativas musicais, com pelo menos 7 dias de antecedência.'
-                    }
+                    { title: 'ESPECIFICAÇÕES DO EVENTO', text: 'O CONTRATANTE deverá informar por escrito todas as especificidades do evento, incluindo tipo de público, ambiente, necessidades especiais e expectativas musicais, com pelo menos 7 dias de antecedência.' }
                 ]
             }
         };
@@ -512,7 +524,6 @@
             ctx.lineWidth = 2;
             ctx.lineCap = 'round';
             ctx.strokeStyle = '#000';
-
             const saved = localStorage.getItem('dj_brow_signature');
             if(saved) {
                 const img = new Image();
@@ -591,6 +602,7 @@
         document.getElementById('test2_cpf').addEventListener('input', function(e) {
             e.target.value = DJ_BROWW.maskCPF(e.target.value);
         });
+
         function maskMoneyInput(input) {
             let value = input.value.replace(/\D/g, '');
             if (value) {
@@ -600,17 +612,15 @@
             }
         }
 
-        // ===== PREVIEW DO TIPO DE EVENTO =====
+        // ===== PREVIEW DO TIPO =====
         function updateEventPreview() {
             const tipo = document.getElementById('evt_tipo').value;
             const preview = document.getElementById('eventPreview');
             const content = document.getElementById('eventPreviewContent');
-
             if (!tipo || !EVENT_CLAUSES[tipo]) {
                 preview.style.display = 'none';
                 return;
             }
-
             const clauses = EVENT_CLAUSES[tipo];
             content.innerHTML = clauses.specific.map((c, i) => `
                 <div style="margin-bottom:10px; padding:8px; background:rgba(0,0,0,0.3); border-radius:6px;">
@@ -618,7 +628,6 @@
                     <span style="color:var(--text-muted);">${DJ_BROWW.escapeHtml(c.text.substring(0, 80))}...</span>
                 </div>
             `).join('');
-
             preview.style.display = 'block';
         }
 
@@ -638,7 +647,6 @@
             const dataCurta = DJ_BROWW.formatDateBR(val('evt_data'));
             const duracaoEvento = calcularDuracao(val('evt_inicio'), val('evt_termino')) || 'horário a definir';
 
-            // Cláusulas específicas do tipo de evento
             const eventConfig = EVENT_CLAUSES[tipoEvento] || EVENT_CLAUSES['Outro'];
             const specificClausesHtml = eventConfig.specific.map((c, i) => `
                 <div class="contract-section">
@@ -647,7 +655,6 @@
                 </div>
             `).join('');
 
-            // Cláusula de hora extra (se preenchida)
             const valorHoraExtra = DJ_BROWW.unmaskMoney(val('evt_hora_extra'));
             let horaExtraHtml = '';
             if (valorHoraExtra > 0) {
@@ -655,12 +662,11 @@
                     <div class="contract-section">
                         <h3>CLÁUSULA ${eventConfig.specific.length + 4} — HORA EXTRA</h3>
                         <p>Caso o CONTRATANTE solicite prorrogação do horário contratado durante o evento, será cobrado valor adicional de <strong>${valorHoraExtra.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</strong> por hora ou fração de hora iniciada.
-                        <br><br>O pagamento da hora extra deverá ser efetuado <strong>imediatamente</strong>, no ato da solicitação, via Pix, dinheiro ou transferência bancária. Não será permitida a prorrogação do serviço sem o pagamento prévio confirmado.
+                        <br><br>O pagamento da hora extra deverá ser efetuado <strong>imediatamente</strong>, no ato da solicitação, via Pix, dinheiro ou transferência bancária.
                         <br><br>O CONTRATADO reserva-se o direito de não aceitar a prorrogação caso haja compromisso posterior ou restrições do local do evento.</p>
                     </div>`;
             }
 
-            // Cláusulas adicionais opcionais
             let optionalClausesHtml = '';
             let clauseNum = eventConfig.specific.length + 4 + (valorHoraExtra > 0 ? 1 : 0);
 
@@ -713,7 +719,8 @@
                 <div class="contract-section">
                     <p><strong>CONTRATANTE:</strong> ${DJ_BROWW.escapeHtml(val('cli_nome'))}, 
                     CPF/CNPJ: ${DJ_BROWW.escapeHtml(val('cli_cpf'))}, 
-                    telefone: ${DJ_BROWW.escapeHtml(val('cli_tel'))}.</p>
+                    telefone: ${DJ_BROWW.escapeHtml(val('cli_tel'))},
+                    residente em ${DJ_BROWW.escapeHtml(val('cli_end') || '[Endereço não informado]')}.</p>
                 </div>
 
                 <div class="contract-section">
@@ -797,8 +804,6 @@
             document.getElementById('contractContent').innerHTML = content;
             document.getElementById('editorContainer').style.display = 'block';
             document.body.style.overflow = 'hidden';
-
-
             DJ_BROWW.toast(`Contrato de ${tipoEvento} gerado com ${eventConfig.specific.length} cláusulas específicas!`, 'success');
         };
 
@@ -816,10 +821,8 @@
 h2{text-align:center;text-transform:uppercase;letter-spacing:2px;border-bottom:2px solid #000;padding-bottom:15px}
 .contract-section{margin-bottom:20px;text-align:justify}.signature-area{margin-top:50px;text-align:center}
 .signature-line{border-top:1px solid #000;width:280px;margin:10px auto 5px}
-.hash-footer{margin-top:40px;padding-top:20px;border-top:1px dashed #ccc;font-size:0.7rem;color:#666;text-align:center;font-family:'Courier New',monospace}
 .event-type-badge{display:inline-block;background:#00ff88;color:#000;padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:800;text-transform:uppercase}</style>
 </head><body>${content}</body></html>`;
-
             const blob = new Blob([fullHtml], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -894,14 +897,13 @@ h2{text-align:center;text-transform:uppercase;letter-spacing:2px;border-bottom:2
                 } catch(e) {}
             }
 
-            // Calcular sugestão de hora extra baseada no valor total
             const orcamentoCompleto = localStorage.getItem('dj_brow_orcamento_completo');
             if (orcamentoCompleto) {
                 try {
                     const orc = JSON.parse(orcamentoCompleto);
                     if (orc.hours && orc.rate) {
                         const valorHora = orc.hours * orc.rate;
-                        const sugestao = valorHora * 1.5; // 50% a mais que a hora normal
+                        const sugestao = valorHora * 1.5;
                         if (sugestao > 0 && !document.getElementById('evt_hora_extra').value) {
                             document.getElementById('evt_hora_extra').value = sugestao.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                         }
@@ -927,17 +929,17 @@ h2{text-align:center;text-transform:uppercase;letter-spacing:2px;border-bottom:2
         // AUTOSAVE: Salvar todos os campos a cada 30 segundos
         setInterval(async () => {
             const data = {};
-            ['contr_nome_civil', 'contr_cpf', 'contr_rg', 'contr_end', 'contr_nome_artistico',
-             'cli_nome', 'cli_cpf', 'cli_tel', 'cli_end',
-             'evt_tipo', 'evt_local', 'evt_data', 'evt_inicio', 'evt_termino', 'evt_valor', 'evt_hora_extra', 'evt_pagamento',
-             'test1_nome', 'test1_cpf', 'test2_nome', 'test2_cpf'].forEach(id => {
+            ['contr_nome_civil', 'contr_cpf', 'contr_rg', 'contr_cep', 'contr_end', 'contr_nome_artistico',
+             'cli_nome', 'cli_cpf', 'cli_tel', 'cli_cep', 'cli_end',
+             'test1_nome', 'test1_cpf', 'test2_nome', 'test2_cpf',
+             'evt_tipo', 'evt_local', 'evt_data', 'evt_inicio', 'evt_termino', 'evt_valor', 'evt_hora_extra', 'evt_pagamento'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) data[id] = el.value;
             });
             localStorage.setItem('dj_brow_contract_draft', JSON.stringify(data));
         }, 30000);
 
-        // Restaurar rascunho se existir
+        // Restaurar rascunho
         const draft = localStorage.getItem('dj_brow_contract_draft');
         if (draft) {
             try {

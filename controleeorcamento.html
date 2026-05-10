@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>DJ BROWW - Orçamento v4.0</title>
+    <title>DJ BROWW - Orçamento v4.1</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
     <style>
         .app { max-width: 500px; margin: 0 auto; }
-
         .nav-top { 
             display: flex; 
             justify-content: space-between; 
@@ -24,7 +23,6 @@
             align-items: center;
             gap: 5px;
         }
-
         .total-card { 
             background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
             color: #000; 
@@ -66,7 +64,6 @@
             position: relative;
             z-index: 1;
         }
-
         .section { 
             background: var(--card); 
             border-radius: var(--radius-lg); 
@@ -78,43 +75,23 @@
         .section:hover {
             border-color: var(--border-light);
         }
-
         .group { 
             display: grid; 
             grid-template-columns: 1fr 1fr; 
             gap: 12px; 
             margin-bottom: 12px; 
         }
-
         .btn-box { 
             display: flex; 
             flex-direction: column; 
             gap: 10px;
             margin-top: 20px;
         }
-
         .btn-client { background: var(--primary); color: #000; }
         .btn-report { background: var(--info); color: #000; }
         .btn-contract { background: #ff6b6b; color: #fff; }
         .btn-backup { background: #845ef7; color: #fff; }
         .btn-clear { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
-
-        .event-preview {
-            background: rgba(0,255,136,0.05);
-            border: 1px dashed var(--primary);
-            border-radius: var(--radius);
-            padding: 20px;
-            margin-bottom: 15px;
-        }
-
-        .event-preview h4 {
-            color: var(--primary);
-            margin: 0 0 15px 0;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
         .cost-breakdown {
             background: #000;
             border-radius: var(--radius-sm);
@@ -122,14 +99,12 @@
             margin-top: 15px;
             font-size: 0.8rem;
         }
-
         .cost-row {
             display: flex;
             justify-content: space-between;
             padding: 6px 0;
             border-bottom: 1px solid #1a1a1a;
         }
-
         .cost-row:last-child {
             border-bottom: none;
             font-weight: 800;
@@ -139,7 +114,18 @@
             padding-top: 10px;
             border-top: 2px solid var(--border);
         }
-
+        .cep-loading {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--primary);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 600px) {
             .group { grid-template-columns: 1fr; }
             .total-card h2 { font-size: 2.2rem; }
@@ -159,7 +145,6 @@
         <h2 id="totalDisplay">R$ 0,00</h2>
     </div>
 
-    <!-- Preview de custos -->
     <div class="cost-breakdown" id="costBreakdown" style="display:none;">
         <div class="cost-row"><span>⛽ Combustível:</span><span id="costFuel">R$ 0,00</span></div>
         <div class="cost-row"><span>🚚 Logística:</span><span id="costLogistics">R$ 0,00</span></div>
@@ -174,25 +159,25 @@
         <div class="group">
             <div>
                 <label>KM Total</label>
-                <input type="number" id="km" placeholder="0" oninput="calculate()" min="0">
+                <input type="tel" id="km" placeholder="0" oninput="calculate()" min="0" inputmode="numeric">
             </div>
             <div>
                 <label>Preço Litro R$</label>
-                <input type="text" id="gas" placeholder="0,00" oninput="maskMoneyInput(this); calculate()">
+                <input type="tel" id="gas" placeholder="0,00" oninput="maskMoneyInput(this); calculate()" inputmode="decimal">
             </div>
         </div>
         <div class="group">
             <div>
                 <label>Média (KM/L)</label>
-                <input type="number" id="media" placeholder="Padrão: 10" oninput="calculate()" min="1" value="10">
+                <input type="tel" id="media" placeholder="Padrão: 10" oninput="calculate()" min="1" value="10" inputmode="numeric">
             </div>
             <div>
                 <label>Pedágios R$</label>
-                <input type="text" id="toll" placeholder="0,00" oninput="maskMoneyInput(this); calculate()">
+                <input type="tel" id="toll" placeholder="0,00" oninput="maskMoneyInput(this); calculate()" inputmode="decimal">
             </div>
         </div>
         <label>Serviço de Carreto R$</label>
-        <input type="text" id="freight" placeholder="0,00" oninput="maskMoneyInput(this); calculate()">
+        <input type="tel" id="freight" placeholder="0,00" oninput="maskMoneyInput(this); calculate()" inputmode="decimal">
     </div>
 
     <div class="section">
@@ -200,15 +185,15 @@
         <div class="group">
             <div>
                 <label>Meu Equipamento R$</label>
-                <input type="text" id="equip_own" placeholder="Lucro seu" oninput="maskMoneyInput(this); calculate()">
+                <input type="tel" id="equip_own" placeholder="Lucro seu" oninput="maskMoneyInput(this); calculate()" inputmode="decimal">
             </div>
             <div>
                 <label>Aluguel Terceiros R$</label>
-                <input type="text" id="equip_third" placeholder="Custo extra" oninput="maskMoneyInput(this); calculate()">
+                <input type="tel" id="equip_third" placeholder="Custo extra" oninput="maskMoneyInput(this); calculate()" inputmode="decimal">
             </div>
         </div>
         <label>Reserva Manutenção R$</label>
-        <input type="text" id="maint" placeholder="0,00" oninput="maskMoneyInput(this); calculate()">
+        <input type="tel" id="maint" placeholder="0,00" oninput="maskMoneyInput(this); calculate()" inputmode="decimal">
     </div>
 
     <div class="section">
@@ -216,26 +201,25 @@
         <div class="group">
             <div>
                 <label>Horas de Som</label>
-                <input type="number" id="hours" placeholder="0" oninput="calculate()" min="0" step="0.5">
+                <input type="tel" id="hours" placeholder="0" oninput="calculate()" min="0" step="0.5" inputmode="decimal">
             </div>
             <div>
                 <label>Valor/Hora R$</label>
-                <input type="text" id="rate" placeholder="0,00" oninput="maskMoneyInput(this); calculate()">
+                <input type="tel" id="rate" placeholder="0,00" oninput="maskMoneyInput(this); calculate()" inputmode="decimal">
             </div>
         </div>
         <div class="group">
             <div>
                 <label>Ajudante R$</label>
-                <input type="text" id="staff" placeholder="0,00" oninput="maskMoneyInput(this); calculate()">
+                <input type="tel" id="staff" placeholder="0,00" oninput="maskMoneyInput(this); calculate()" inputmode="decimal">
             </div>
             <div>
                 <label>Alimentação R$</label>
-                <input type="text" id="extra" placeholder="0,00" oninput="maskMoneyInput(this); calculate()">
+                <input type="tel" id="extra" placeholder="0,00" oninput="maskMoneyInput(this); calculate()" inputmode="decimal">
             </div>
         </div>
     </div>
 
-    <!-- Dados do Evento para envio ao contrato -->
     <div class="section card-highlight">
         <div class="section-title">📋 DADOS DO EVENTO (Opcional)</div>
         <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:15px;">
@@ -248,12 +232,20 @@
         <div class="grid">
             <div class="form-group">
                 <label>CPF/CNPJ</label>
-                <input type="text" id="preview_cpf" placeholder="000.000.000-00" maxlength="18">
+                <input type="tel" id="preview_cpf" placeholder="000.000.000-00" maxlength="18" inputmode="numeric">
             </div>
             <div class="form-group">
                 <label>Telefone</label>
-                <input type="text" id="preview_tel" placeholder="(00) 00000-0000" maxlength="15">
+                <input type="tel" id="preview_tel" placeholder="(00) 00000-0000" maxlength="15" inputmode="tel">
             </div>
+        </div>
+        <div class="form-group">
+            <label>CEP do Evento <span id="preview_cep_loading"></span></label>
+            <input type="tel" id="preview_cep" placeholder="00000-000" maxlength="9" inputmode="numeric">
+        </div>
+        <div class="form-group">
+            <label>Local do Evento</label>
+            <input type="text" id="preview_local" placeholder="Endereço do evento">
         </div>
         <div class="form-group">
             <label>Tipo de Evento</label>
@@ -265,10 +257,6 @@
                 <option value="Corporativo">Corporativo</option>
                 <option value="Outro">Outro</option>
             </select>
-        </div>
-        <div class="form-group">
-            <label>Local do Evento</label>
-            <input type="text" id="preview_local" placeholder="Endereço do evento">
         </div>
         <div class="grid">
             <div class="form-group">
@@ -290,7 +278,7 @@
         <button class="btn btn-client btn-block" onclick="copyClient()">📱 Copiar p/ WhatsApp</button>
         <button class="btn btn-report btn-block" onclick="copyReport()">📊 Relatório Interno</button>
         <button class="btn btn-contract btn-block" onclick="sendToContract()">🚀 Ir para Contrato</button>
-        <button class="btn btn-backup btn-block" onclick="exportBackup()">💾 Exportar Backup</button>
+        <button class="btn btn-backup btn-block" onclick="exportBackupFile()">💾 Exportar Backup</button>
         <button class="btn btn-clear btn-block" onclick="resetApp()">🗑️ Limpar Tudo</button>
     </div>
 </div>
@@ -303,7 +291,7 @@
             Escolha como deseja gerenciar seu backup:
         </p>
         <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;">
-            <button class="btn btn-backup" onclick="exportBackup(); closeBackupModal();">
+            <button class="btn btn-backup" onclick="exportBackupFile(); closeBackupModal();">
                 📥 Exportar Backup (Baixar Arquivo)
             </button>
             <button class="btn btn-success" onclick="importBackupFile(); closeBackupModal();">
@@ -350,7 +338,6 @@
 
         document.getElementById('totalDisplay').innerText = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-        // Atualizar breakdown
         const breakdown = document.getElementById('costBreakdown');
         if (total > 0) {
             breakdown.style.display = 'block';
@@ -420,26 +407,15 @@ _Para reservar a data, sinal de 20%._
         }
 
         const valorFinal = d.total.toFixed(2);
-
-        // Salvar dados do orçamento
         localStorage.setItem('dj_brow_orcamento_valor', valorFinal);
         localStorage.setItem('dj_brow_orcamento_completo', JSON.stringify({
-            km: getVal('km'),
-            gas: getVal('gas'),
-            media: getVal('media'),
-            toll: getVal('toll'),
-            freight: getVal('freight'),
-            equip_own: getVal('equip_own'),
-            equip_third: getVal('equip_third'),
-            maint: getVal('maint'),
-            hours: getVal('hours'),
-            rate: getVal('rate'),
-            staff: getVal('staff'),
-            extra: getVal('extra'),
-            total: d.total
+            km: getVal('km'), gas: getVal('gas'), media: getVal('media'),
+            toll: getVal('toll'), freight: getVal('freight'),
+            equip_own: getVal('equip_own'), equip_third: getVal('equip_third'),
+            maint: getVal('maint'), hours: getVal('hours'), rate: getVal('rate'),
+            staff: getVal('staff'), extra: getVal('extra'), total: d.total
         }));
 
-        // Coletar dados do evento se preenchidos
         const eventData = {};
         ['preview_cliente', 'preview_cpf', 'preview_tel', 'preview_tipo', 'preview_local', 'preview_data', 'preview_inicio', 'preview_termino'].forEach(id => {
             const el = document.getElementById(id);
@@ -460,11 +436,10 @@ _Para reservar a data, sinal de 20%._
 
     function saveData() {
         const data = {};
-        ['km', 'media', 'preview_cliente', 'preview_cpf', 'preview_tel', 'preview_tipo', 'preview_local', 'preview_data', 'preview_inicio', 'preview_termino'].forEach(id => {
+        ['km', 'media', 'preview_cliente', 'preview_cpf', 'preview_tel', 'preview_tipo', 'preview_local', 'preview_data', 'preview_inicio', 'preview_termino', 'preview_cep'].forEach(id => {
             const el = document.getElementById(id);
             if (el) data[id] = el.value;
         });
-        // Salvar valores monetários já formatados
         ['gas', 'toll', 'freight', 'equip_own', 'equip_third', 'maint', 'hours', 'rate', 'staff', 'extra'].forEach(id => {
             const el = document.getElementById(id);
             if (el) data[id] = el.value;
@@ -485,7 +460,7 @@ _Para reservar a data, sinal de 20%._
         }
     }
 
-    function exportBackup() {
+    function exportBackupFile() {
         DJ_BROWW.exportToFile();
         DJ_BROWW.toast('✅ Backup baixado! Salve em local seguro.', 'success', 5000);
     }
@@ -518,8 +493,6 @@ _Para reservar a data, sinal de 20%._
         document.getElementById('backupModal').classList.remove('active');
     }
 
-
-
     function resetApp() { 
         DJ_BROWW.confirm('Tem certeza que deseja limpar todos os campos?', () => {
             document.querySelectorAll('input').forEach(i => i.value = '');
@@ -529,18 +502,57 @@ _Para reservar a data, sinal de 20%._
         });
     }
 
-    // Máscaras para inputs de preview
+    // ViaCEP no orçamento
+    document.getElementById('preview_cep').addEventListener('input', function(e) {
+        e.target.value = DJ_BROWW.maskCEP(e.target.value);
+    });
+
+    document.getElementById('preview_cep').addEventListener('blur', async function() {
+        const cep = this.value.replace(/\D/g, '');
+        if (cep.length !== 8) return;
+        document.getElementById('preview_cep_loading').innerHTML = '<span class="cep-loading"></span>';
+        const data = await DJ_BROWW.fetchCEP(cep);
+        document.getElementById('preview_cep_loading').innerHTML = '';
+        if (data) {
+            const endereco = `${data.logradouro}${data.logradouro && data.bairro ? ', ' : ''}${data.bairro} — ${data.localidade}/${data.uf}`;
+            const localInput = document.getElementById('preview_local');
+            if (!localInput.value || localInput.value.trim() === '') {
+                localInput.value = endereco;
+                DJ_BROWW.toast('✅ Endereço do evento preenchido!', 'success');
+            } else {
+                localInput.value = endereco;
+                DJ_BROWW.toast('📍 Endereço atualizado!', 'info');
+            }
+        } else {
+            DJ_BROWW.toast('❌ CEP não encontrado', 'error');
+        }
+    });
+
+    // Máscaras
     document.getElementById('preview_cpf').addEventListener('input', function(e) {
         const val = e.target.value.replace(/\D/g, '');
-        if (val.length > 11) {
-            e.target.value = DJ_BROWW.maskCNPJ(val);
-        } else {
-            e.target.value = DJ_BROWW.maskCPF(val);
-        }
+        e.target.value = val.length > 11 ? DJ_BROWW.maskCNPJ(val) : DJ_BROWW.maskCPF(val);
     });
 
     document.getElementById('preview_tel').addEventListener('input', function(e) {
         e.target.value = DJ_BROWW.maskPhone(e.target.value);
+    });
+
+    // Autosave a cada 30s
+    setInterval(() => {
+        saveData();
+    }, 30000);
+
+    // Alerta ao sair com dados
+    let hasData = false;
+    document.querySelectorAll('input').forEach(el => {
+        el.addEventListener('input', () => { hasData = true; });
+    });
+    window.addEventListener('beforeunload', (e) => {
+        if (hasData && getVal('hours') > 0) {
+            e.preventDefault();
+            e.returnValue = 'Você tem dados não salvos. Deseja realmente sair?';
+        }
     });
 
     window.addEventListener('load', loadData);

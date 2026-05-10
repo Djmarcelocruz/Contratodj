@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>DJ Brow — Dashboard v4.0</title>
+    <title>DJ Brow — Dashboard v4.1</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#00ff88">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -11,13 +11,11 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
     <style>
-        /* Estilos específicos do dashboard */
         .dashboard-header {
             text-align: center;
             margin-bottom: 30px;
             padding: 20px 0;
         }
-
         .dashboard-header h1 {
             font-size: 2.2rem;
             margin-bottom: 5px;
@@ -26,19 +24,16 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-
         .dashboard-header .subtitle {
             color: var(--text-muted);
             font-size: 0.9rem;
         }
-
         .stats-overview {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 12px;
             margin-bottom: 25px;
         }
-
         .stat-mini {
             background: var(--card);
             border: 1px solid var(--border);
@@ -47,19 +42,16 @@
             text-align: center;
             transition: var(--transition);
         }
-
         .stat-mini:hover {
             border-color: var(--primary);
             transform: translateY(-3px);
         }
-
         .stat-mini .number {
             font-size: 1.5rem;
             font-weight: 800;
             color: var(--primary);
             display: block;
         }
-
         .stat-mini .label {
             font-size: 0.65rem;
             color: var(--text-muted);
@@ -67,14 +59,12 @@
             letter-spacing: 0.5px;
             margin-top: 4px;
         }
-
         .menu-grid {
             display: grid;
             grid-template-columns: 1fr;
             gap: 12px;
             margin-bottom: 25px;
         }
-
         .menu-item {
             background: var(--card);
             border: 1px solid var(--border);
@@ -89,7 +79,6 @@
             position: relative;
             overflow: hidden;
         }
-
         .menu-item::before {
             content: '';
             position: absolute;
@@ -101,51 +90,42 @@
             opacity: 0;
             transition: var(--transition);
         }
-
         .menu-item:hover {
             border-color: var(--primary);
             transform: translateX(5px);
             box-shadow: var(--shadow-primary);
         }
-
         .menu-item:hover::before {
             opacity: 1;
         }
-
         .menu-item.blue::before { background: var(--accent-blue); }
         .menu-item.blue:hover { border-color: var(--accent-blue); box-shadow: 0 10px 25px rgba(11, 118, 209, 0.15); }
         .menu-item.warning::before { background: var(--warning); }
         .menu-item.warning:hover { border-color: var(--warning); box-shadow: 0 10px 25px rgba(255, 193, 7, 0.15); }
-
         .menu-item .icon {
             font-size: 2.2rem;
             min-width: 50px;
             text-align: center;
         }
-
         .menu-item .info h3 {
             margin: 0;
             font-size: 1.1rem;
             color: var(--primary);
             font-weight: 700;
         }
-
         .menu-item.blue .info h3 { color: var(--accent-blue); }
         .menu-item.warning .info h3 { color: var(--warning); }
-
         .menu-item .info p {
             margin: 4px 0 0 0;
             font-size: 0.8rem;
             color: var(--text-dim);
         }
-
         .secondary-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
             margin-bottom: 25px;
         }
-
         .secondary-item {
             background: var(--card);
             border: 1px solid var(--border);
@@ -156,31 +136,26 @@
             text-align: center;
             transition: var(--transition);
         }
-
         .secondary-item:hover {
             border-color: var(--info);
             transform: translateY(-3px);
             box-shadow: 0 8px 20px var(--info-glow);
         }
-
         .secondary-item .icon {
             font-size: 1.8rem;
             margin-bottom: 8px;
         }
-
         .secondary-item h4 {
             margin: 0;
             font-size: 0.9rem;
             color: var(--info);
             font-weight: 700;
         }
-
         .secondary-item p {
             margin: 4px 0 0 0;
             font-size: 0.75rem;
             color: var(--text-dim);
         }
-
         .next-events {
             background: var(--card);
             border: 1px solid var(--border);
@@ -188,7 +163,6 @@
             padding: 20px;
             margin-bottom: 20px;
         }
-
         .next-events h3 {
             color: var(--primary);
             font-size: 0.9rem;
@@ -196,7 +170,6 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-
         .event-item {
             display: flex;
             justify-content: space-between;
@@ -206,26 +179,21 @@
             transition: var(--transition);
             border-radius: var(--radius-sm);
         }
-
         .event-item:hover {
             background: rgba(255,255,255,0.02);
         }
-
         .event-item:last-child {
             border-bottom: none;
         }
-
         .event-info .client {
             font-weight: 700;
             font-size: 0.95rem;
         }
-
         .event-info .details {
             font-size: 0.75rem;
             color: var(--text-muted);
             margin-top: 2px;
         }
-
         .event-countdown {
             font-size: 0.75rem;
             font-weight: 700;
@@ -235,13 +203,11 @@
             color: var(--primary);
             white-space: nowrap;
         }
-
         .event-countdown.urgent {
             background: rgba(255,68,68,0.1);
             color: var(--danger);
             animation: pulse 2s infinite;
         }
-
         .install-btn {
             background: var(--primary);
             color: #000;
@@ -255,16 +221,13 @@
             margin: 20px auto;
             display: none;
         }
-
         .install-btn.visible {
             display: block;
         }
-
         .install-btn:hover {
             transform: scale(1.05);
             box-shadow: var(--shadow-primary);
         }
-
         .version-info {
             text-align: center;
             color: var(--text-dim);
@@ -273,7 +236,6 @@
             padding-top: 20px;
             border-top: 1px solid var(--border);
         }
-
         .security-notice {
             background: rgba(0,255,136,0.05);
             border: 1px solid rgba(0,255,136,0.2);
@@ -286,7 +248,6 @@
             align-items: center;
             gap: 10px;
         }
-
         .security-notice button {
             background: var(--primary);
             color: #000;
@@ -298,7 +259,10 @@
             cursor: pointer;
             white-space: nowrap;
         }
-
+        .crypto-active {
+            background: rgba(0,212,255,0.05) !important;
+            border-color: rgba(0,212,255,0.3) !important;
+        }
         @media (max-width: 600px) {
             .stats-overview { grid-template-columns: 1fr; }
             .secondary-grid { grid-template-columns: 1fr; }
@@ -312,20 +276,21 @@
     <div class="container">
         <div class="dashboard-header">
             <h1>🎧 DJ BROWW</h1>
-            <p class="subtitle">Sistema de Gestão Profissional v4.0</p>
+            <p class="subtitle">Sistema de Gestão Profissional v4.1</p>
         </div>
 
-        <!-- Aviso de Segurança -->
+        <!-- Aviso de Segurança / Backup -->
         <div class="security-notice" id="securityNotice">
             <span>💾</span>
             <span>Faça backup regularmente! Seus dados ficam apenas neste navegador.</span>
             <button onclick="exportBackupFile()">📥 Exportar Backup</button>
         </div>
 
-        <div class="security-notice" id="cryptoNotice" style="display:none; background:rgba(0,255,136,0.05);">
+        <!-- Aviso de Criptografia -->
+        <div class="security-notice" id="cryptoNotice" style="display:none;">
             <span>🔒</span>
-            <span>Criptografia disponível (HTTPS). Proteja com senha mestra.</span>
-            <button onclick="setupEncryption()">Ativar Criptografia</button>
+            <span id="cryptoText">Criptografia disponível. Proteja seus dados com senha.</span>
+            <button onclick="setupEncryption()" id="cryptoBtn">Ativar Criptografia</button>
         </div>
 
         <!-- Stats Rápidas -->
@@ -362,7 +327,7 @@
                 <div class="icon">🛡️</div>
                 <div class="info">
                     <h3>Contratos</h3>
-                    <p>Gerar contrato blindado com hash de integridade</p>
+                    <p>Gerar contrato blindado com termo de ciência</p>
                 </div>
             </a>
             <a href="historico_contratos.html" class="menu-item warning">
@@ -399,8 +364,8 @@
         </div>
 
         <div class="version-info">
-            <p>DJ Brow v4.0 — Sistema de Gestão Profissional</p>
-            <p>Com Criptografia, Assinatura Digital e Relatórios</p>
+            <p>DJ Brow v4.1 — Sistema de Gestão Profissional</p>
+            <p>Com Criptografia, Assinatura Digital, ViaCEP e Relatórios</p>
             <p style="margin-top:5px; font-size:0.7rem;">⚠️ Dados armazenados localmente — faça backups regularmente</p>
         </div>
     </div>
@@ -414,7 +379,6 @@
             .catch(err => console.log('SW não registrado:', err));
         }
 
-        // Detectar se já está instalado
         if (window.matchMedia('(display-mode: standalone)').matches) {
             installBtn.style.display = 'none';
         }
@@ -439,27 +403,22 @@
             });
         });
 
-        // ===== ESTATÍSTICAS DO DASHBOARD =====
+        // ===== ESTATÍSTICAS =====
         async function loadDashboardStats() {
             try {
                 const history = await DJ_BROWW.safeGet('dj_brow_contracts_history', []);
-
-                // Total de eventos
                 document.getElementById('statTotalEvents').textContent = history.length;
 
-                // Faturamento total
                 const totalValue = history.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0);
                 document.getElementById('statTotalValue').textContent = 
                     totalValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
 
-                // A receber
                 const pending = history.reduce((sum, item) => {
                     return sum + Math.max(0, (parseFloat(item.valor) || 0) - (parseFloat(item.pago) || 0));
                 }, 0);
                 document.getElementById('statPending').textContent = 
                     pending.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
 
-                // Próximos eventos (próximos 30 dias)
                 const today = new Date();
                 today.setHours(0,0,0,0);
                 const thirtyDaysLater = new Date(today);
@@ -477,7 +436,6 @@
                     const section = document.getElementById('nextEventsSection');
                     const list = document.getElementById('nextEventsList');
                     section.style.display = 'block';
-
                     list.innerHTML = upcoming.map(item => {
                         const countdown = DJ_BROWW.calculateCountdown(item.data);
                         return `
@@ -491,73 +449,91 @@
                         `;
                     }).join('');
                 }
-
-                // Verificar se já tem backup recente
-                const lastBackup = localStorage.getItem('dj_brow_last_backup');
-                const today = new Date().toDateString();
-                if (lastBackup === today) {
-                    document.getElementById('securityNotice').style.display = 'none';
-                }
-
-                // Verificar se criptografia está disponível e ativada
-                const hasKey = localStorage.getItem('dj_brow_crypto_key');
-                if (!hasKey && DJ_BROWW.checkCrypto()) {
-                    document.getElementById('cryptoNotice').style.display = 'flex';
-                } else {
-                    document.getElementById('cryptoNotice').style.display = 'none';
-                }
-
             } catch (e) {
                 console.error('Erro ao carregar estatísticas:', e);
             }
         }
 
-        // ===== CONFIGURAR CRIPTOGRAFIA =====
-        async function setupEncryption() {
-            const password = prompt('Crie uma senha mestra para proteger seus dados:
+        // ===== BACKUP =====
+        function exportBackupFile() {
+            DJ_BROWW.exportToFile();
+            DJ_BROWW.toast('✅ Backup baixado! Salve em local seguro.', 'success', 5000);
+        }
 
-⚠️ IMPORTANTE: Não esqueça esta senha! Se perder, não será possível recuperar os dados.');
+        function importBackupFile() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                try {
+                    const result = await DJ_BROWW.importFromFile(file);
+                    if (result) {
+                        DJ_BROWW.toast('✅ Backup restaurado! Recarregando...', 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    }
+                } catch (err) {
+                    DJ_BROWW.toast('Erro: ' + err.message, 'error', 5000);
+                }
+            };
+            input.click();
+        }
+
+        // ===== CRIPTOGRAFIA =====
+        async function setupEncryption() {
+            const password = prompt('Crie uma senha mestra para proteger seus dados:\n\n⚠️ IMPORTANTE: Não esqueça esta senha! Se perder, não será possível recuperar os dados.');
             if (!password || password.length < 6) {
                 DJ_BROWW.toast('Senha deve ter pelo menos 6 caracteres', 'error');
                 return;
             }
-
-            const confirm = prompt('Confirme sua senha:');
-            if (password !== confirm) {
+            const confirmPwd = prompt('Confirme sua senha:');
+            if (password !== confirmPwd) {
                 DJ_BROWW.toast('Senhas não conferem', 'error');
                 return;
             }
-
             try {
                 await DJ_BROWW.generateKey(password);
-
-                // Re-encriptar dados existentes
                 const history = await DJ_BROWW.safeGet('dj_brow_contracts_history', []);
                 await DJ_BROWW.safeSet('dj_brow_contracts_history', history);
-
                 const contractData = await DJ_BROWW.safeGet('dj_brow_contract_data_v3', {});
                 await DJ_BROWW.safeSet('dj_brow_contract_data_v3', contractData);
 
-                document.getElementById('securityNotice').style.display = 'none';
+                document.getElementById('cryptoNotice').classList.add('crypto-active');
+                document.getElementById('cryptoText').textContent = '🔐 Dados protegidos com criptografia AES-256';
+                document.getElementById('cryptoBtn').style.display = 'none';
                 DJ_BROWW.toast('🔒 Proteção ativada! Seus dados estão criptografados.', 'success', 5000);
             } catch (e) {
-                DJ_BROWW.toast('Erro ao ativar proteção', 'error');
+                DJ_BROWW.toast('Erro ao ativar proteção: ' + e.message, 'error');
             }
         }
 
-        // ===== NOTIFICAÇÕES DE EVENTOS =====
+        async function checkCryptoStatus() {
+            const hasKey = localStorage.getItem('dj_brow_crypto_key');
+            const cryptoNotice = document.getElementById('cryptoNotice');
+
+            if (hasKey) {
+                cryptoNotice.style.display = 'flex';
+                cryptoNotice.classList.add('crypto-active');
+                document.getElementById('cryptoText').textContent = '🔐 Dados protegidos com criptografia AES-256';
+                document.getElementById('cryptoBtn').style.display = 'none';
+            } else if (DJ_BROWW.checkCrypto()) {
+                cryptoNotice.style.display = 'flex';
+            } else {
+                cryptoNotice.style.display = 'none';
+            }
+        }
+
+        // ===== NOTIFICAÇÕES =====
         async function checkEventNotifications() {
             const permission = await DJ_BROWW.requestNotificationPermission();
             if (!permission) return;
-
             const history = await DJ_BROWW.safeGet('dj_brow_contracts_history', []);
             const today = new Date();
             today.setHours(0,0,0,0);
-
             history.forEach(item => {
                 const eventDate = new Date(item.data + 'T00:00:00');
                 const diff = Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24));
-
                 if (diff === 7 && item.status !== 'Concluído') {
                     DJ_BROWW.sendNotification('Evento em 7 dias!', {
                         body: `${item.cliente} - ${item.tipo || 'Evento'} em ${DJ_BROWW.formatDateBR(item.data)}`,
@@ -573,35 +549,25 @@
             });
         }
 
-        // ===== BACKUP AUTOMÁTICO =====
-        function checkAutoBackup() {
+        // ===== LEMBRETE DE BACKUP =====
+        function checkBackupReminder() {
             const lastBackup = localStorage.getItem('dj_brow_last_backup');
             const today = new Date().toDateString();
-
-            if (lastBackup !== today) {
-                // Mostrar lembrete sutil
-                const history = JSON.parse(localStorage.getItem('dj_brow_contracts_history') || '[]');
-                if (history.length > 0) {
-                    setTimeout(() => {
-                        DJ_BROWW.toast('💾 Lembrete: Faça backup dos seus dados! Clique em Exportar Backup.', 'warning', 8000);
-                    }, 3000);
-                }
-            }
-
-            // Tentar fazer backup silencioso se tiver dados
             const history = JSON.parse(localStorage.getItem('dj_brow_contracts_history') || '[]');
-            if (history.length > 0 && !lastBackup) {
-                // Primeiro backup automático
-                localStorage.setItem('dj_brow_last_backup', today);
+
+            if (history.length > 0 && lastBackup !== today) {
+                setTimeout(() => {
+                    DJ_BROWW.toast('💾 Lembrete: Faça backup dos seus dados! Clique em Exportar Backup.', 'warning', 8000);
+                }, 2000);
             }
         }
 
         // Inicializar
         window.addEventListener('load', () => {
             loadDashboardStats();
-            checkAutoBackup();
+            checkCryptoStatus();
+            checkBackupReminder();
 
-            // Verificar notificações diariamente
             const lastCheck = localStorage.getItem('dj_brow_last_notification_check');
             const today = new Date().toDateString();
             if (lastCheck !== today) {
