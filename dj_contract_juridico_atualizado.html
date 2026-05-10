@@ -585,6 +585,12 @@
         document.getElementById('cli_tel').addEventListener('input', function(e) {
             e.target.value = DJ_BROWW.maskPhone(e.target.value);
         });
+        document.getElementById('test1_cpf').addEventListener('input', function(e) {
+            e.target.value = DJ_BROWW.maskCPF(e.target.value);
+        });
+        document.getElementById('test2_cpf').addEventListener('input', function(e) {
+            e.target.value = DJ_BROWW.maskCPF(e.target.value);
+        });
         function maskMoneyInput(input) {
             let value = input.value.replace(/\D/g, '');
             if (value) {
@@ -749,6 +755,11 @@
                     <br><br>Firmam o presente instrumento em 02 (duas) vias de igual teor.</p>
                 </div>
 
+                <div class="contract-section" style="margin-top:30px; padding:15px; border:1px solid #ccc;">
+                    <p style="text-align:center; font-weight:bold; margin-bottom:10px;">TERMO DE CIÊNCIA E CONCORDÂNCIA</p>
+                    <p>Declaro que li todas as cláusulas deste contrato, compreendi seus termos e condições, e concordo em cumpri-las fielmente. Reconheço que este instrumento foi firmado em livre e espontânea vontade, sem coação de qualquer natureza.</p>
+                </div>
+
                 <div class="signature-area">
                     <p>${dataFormatada}</p>
                     <br><br><br>
@@ -762,6 +773,20 @@
                         <div class="signature-line"></div>
                         <p><strong>${DJ_BROWW.escapeHtml(val('cli_nome'))}</strong><br>Contratante</p>
                     </div>
+                    ${(val('test1_nome') || val('test2_nome')) ? `
+                    <br><br><br>
+                    <div style="display:flex; justify-content:center; gap:60px; flex-wrap:wrap;">
+                        ${val('test1_nome') ? `
+                        <div>
+                            <div class="signature-line"></div>
+                            <p><strong>${DJ_BROWW.escapeHtml(val('test1_nome'))}</strong><br>Testemunha 1${val('test1_cpf') ? `<br><small>CPF: ${DJ_BROWW.escapeHtml(val('test1_cpf'))}</small>` : ''}</p>
+                        </div>` : ''}
+                        ${val('test2_nome') ? `
+                        <div>
+                            <div class="signature-line"></div>
+                            <p><strong>${DJ_BROWW.escapeHtml(val('test2_nome'))}</strong><br>Testemunha 2${val('test2_cpf') ? `<br><small>CPF: ${DJ_BROWW.escapeHtml(val('test2_cpf'))}</small>` : ''}</p>
+                        </div>` : ''}
+                    </div>` : ''}
                 </div>
 
                 <div style="margin-top:30px; text-align:center; font-size:0.75rem; color:#666;">
@@ -897,6 +922,44 @@ h2{text-align:center;text-transform:uppercase;letter-spacing:2px;border-bottom:2
                 });
                 await DJ_BROWW.safeSet('dj_brow_contract_data_v3', data);
             };
+        });
+
+        // AUTOSAVE: Salvar todos os campos a cada 30 segundos
+        setInterval(async () => {
+            const data = {};
+            ['contr_nome_civil', 'contr_cpf', 'contr_rg', 'contr_end', 'contr_nome_artistico',
+             'cli_nome', 'cli_cpf', 'cli_tel', 'cli_end',
+             'evt_tipo', 'evt_local', 'evt_data', 'evt_inicio', 'evt_termino', 'evt_valor', 'evt_hora_extra', 'evt_pagamento',
+             'test1_nome', 'test1_cpf', 'test2_nome', 'test2_cpf'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) data[id] = el.value;
+            });
+            localStorage.setItem('dj_brow_contract_draft', JSON.stringify(data));
+        }, 30000);
+
+        // Restaurar rascunho se existir
+        const draft = localStorage.getItem('dj_brow_contract_draft');
+        if (draft) {
+            try {
+                const data = JSON.parse(draft);
+                Object.keys(data).forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && !el.value) el.value = data[id];
+                });
+            } catch(e) {}
+        }
+
+        // Alertar se tentar sair com dados não salvos
+        let hasUnsavedData = false;
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('input', () => { hasUnsavedData = true; });
+        });
+        document.getElementById('btnSave').addEventListener('click', () => { hasUnsavedData = false; });
+        window.addEventListener('beforeunload', (e) => {
+            if (hasUnsavedData) {
+                e.preventDefault();
+                e.returnValue = 'Você tem dados não salvos. Deseja realmente sair?';
+            }
         });
     </script>
 </body>

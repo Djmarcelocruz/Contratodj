@@ -573,9 +573,33 @@
             });
         }
 
+        // ===== BACKUP AUTOMÁTICO =====
+        function checkAutoBackup() {
+            const lastBackup = localStorage.getItem('dj_brow_last_backup');
+            const today = new Date().toDateString();
+
+            if (lastBackup !== today) {
+                // Mostrar lembrete sutil
+                const history = JSON.parse(localStorage.getItem('dj_brow_contracts_history') || '[]');
+                if (history.length > 0) {
+                    setTimeout(() => {
+                        DJ_BROWW.toast('💾 Lembrete: Faça backup dos seus dados! Clique em Exportar Backup.', 'warning', 8000);
+                    }, 3000);
+                }
+            }
+
+            // Tentar fazer backup silencioso se tiver dados
+            const history = JSON.parse(localStorage.getItem('dj_brow_contracts_history') || '[]');
+            if (history.length > 0 && !lastBackup) {
+                // Primeiro backup automático
+                localStorage.setItem('dj_brow_last_backup', today);
+            }
+        }
+
         // Inicializar
         window.addEventListener('load', () => {
             loadDashboardStats();
+            checkAutoBackup();
 
             // Verificar notificações diariamente
             const lastCheck = localStorage.getItem('dj_brow_last_notification_check');
