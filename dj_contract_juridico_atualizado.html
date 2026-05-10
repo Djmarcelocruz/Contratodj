@@ -99,18 +99,7 @@
             padding-top: 5px;
         }
 
-        #contractContent .hash-footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px dashed #ccc;
-            font-size: 0.7rem;
-            color: #666;
-            text-align: center;
-            font-family: 'Courier New', monospace;
-            word-break: break-all;
-        }
-
-        .event-type-badge {
+.event-type-badge {
             display: inline-block;
             background: var(--primary);
             color: #000;
@@ -316,7 +305,7 @@
 
                 <div style="margin-top:25px; display:flex; flex-direction:column; gap:10px;">
                     <button type="button" id="btnGenerate" class="btn btn-primary btn-block">
-                        🚀 Gerar Contrato com Hash
+                        🚀 Gerar Contrato
                     </button>
                     <button type="button" id="btnSave" class="btn btn-success btn-block">
                         💾 Salvar no Histórico
@@ -585,11 +574,6 @@
             const dataFormatada = DJ_BROWW.formatDateLong(val('evt_data'));
             const dataCurta = DJ_BROWW.formatDateBR(val('evt_data'));
 
-            // Hash do contrato
-            const contractText = `${val('contr_nome_civil')}${val('cli_nome')}${val('evt_data')}${valorNumerico}${Date.now()}`;
-            const hash = await DJ_BROWW.sha256(contractText);
-            const hashDisplay = hash.substring(0, 16) + '...' + hash.substring(hash.length - 16);
-
             // Cláusulas específicas do tipo de evento
             const eventConfig = EVENT_CLAUSES[tipoEvento] || EVENT_CLAUSES['Outro'];
             const specificClausesHtml = eventConfig.specific.map((c, i) => `
@@ -706,11 +690,8 @@
                     </div>
                 </div>
 
-                <div class="hash-footer">
-                    <p><strong>ASSINATURA DIGITAL — DOCUMENTO AUTENTICADO</strong></p>
-                    <p>Hash: ${hashDisplay}</p>
-                    <p>Gerado em: ${new Date().toLocaleString('pt-BR')} | DJ Brow v4.0</p>
-                    <p style="font-size:0.6rem; margin-top:5px;">Validade jurídica conforme MP 2.200-2/2001 e Lei 14.063/2020</p>
+                <div style="margin-top:30px; text-align:center; font-size:0.75rem; color:#666;">
+                    <p>Documento gerado em ${new Date().toLocaleDateString('pt-BR')}</p>
                 </div>
             `;
 
@@ -718,7 +699,7 @@
             document.getElementById('editorContainer').style.display = 'block';
             document.body.style.overflow = 'hidden';
 
-            localStorage.setItem('dj_brow_last_contract_hash', hash);
+
             DJ_BROWW.toast(`Contrato de ${tipoEvento} gerado com ${eventConfig.specific.length} cláusulas específicas!`, 'success');
         };
 
