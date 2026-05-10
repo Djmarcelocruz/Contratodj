@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>DJ Brow — Contrato v4.0</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <style>
+        .sig-wrapper { 
+            background: #fff; 
+            border-radius: var(--radius-sm); 
+            margin: 10px 0;
+            border: 2px solid var(--border);
+            transition: var(--transition);
+        }
+        .sig-wrapper:hover {
+            border-color: var(--primary);
+        }
+        #djSignaturePad { 
+            width: 100%; 
+            height: 200px; 
+            display: block; 
+            border-radius: var(--radius-sm);
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        #editorContainer { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: #fff; 
+            z-index: 2000; 
+            overflow-y: auto; 
+            padding: 20px; 
+            color: #000;
+        }
+
+        #editorContainer .no-print {
+            position: sticky;
+            top: 0;
+            background: #fff;
+            padding: 15px;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 20px;
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        #contractContent {
+            font-family: 'Times New Roman', Georgia, serif;
+            line-height: 1.8;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+            background: #fff;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+        }
+
+        #contractContent h2 {
+            color: #000;
+            text-align: center;
+            font-size: 1.4rem;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #contractContent .contract-section {
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        #contractContent .contract-section h3 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: #000;
+        }
+
+        #contractContent .signature-area {
+            margin-top: 50px;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+
+        #contractContent .signature-line {
+            border-top: 1px solid #000;
+            width: 280px;
+            margin: 10px auto 5px;
+            padding-top: 5px;
+        }
+
+        #contractContent .hash-footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px dashed #ccc;
+            font-size: 0.7rem;
+            color: #666;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+
+        .clause-editor {
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 15px;
+            margin: 10px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .clause-editor label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #1a1a1a;
+            cursor: pointer;
+            font-size: 0.85rem;
+            text-transform: none;
+            color: var(--text);
+        }
+
+        .clause-editor label:last-child {
+            border-bottom: none;
+        }
+
+        .clause-editor input[type="checkbox"] {
+            width: auto;
+            accent-color: var(--primary);
+        }
+
+        .data-loaded-notice {
+            background: rgba(0,255,136,0.1);
+            border: 1px solid var(--primary);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        @media print {
+            .nav-menu, .btn, .card, h1, .no-print { 
+                display: none !important; 
+            }
+            #editorContainer { 
+                display: block !important; 
+                position: static; 
+                padding: 0; 
+                background: #fff;
+            }
+            #contractContent {
+                box-shadow: none;
+                padding: 20px;
+            }
+            body {
+                background: #fff;
+                color: #000;
+            }
+        }
+
+        @media (max-width: 600px) {
+            #contractContent {
+                padding: 20px;
+            }
+            #contractContent h2 {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-menu">
+        <a href="index.html">🏠<br>Início</a>
+        <a href="controleeorcamento.html">💰<br>Orçamento</a>
+        <a href="dj_contract_juridico_atualizado.html" class="active">📄<br>Contrato</a>
+        <a href="historico_contratos.html">📋<br>Histórico</a>
+        <a href="calculadora_roi.html">📊<br>ROI</a>
+    </nav>
+
+    <div class="container">
+        <h1>📄 Gerador de Contrato</h1>
+
+        <div class="data-loaded-notice" id="dataLoadedNotice">
+            ✅ <strong>Dados do orçamento carregados!</strong> Valor e informações do evento preenchidos automaticamente.
+        </div>
+
+        <div class="card">
+            <form id="contractForm">
+                <div class="section-title">1. Meus Dados Profissionais</div>
+                <button type="button" id="btnToggleMyData" class="btn btn-outline btn-sm" style="margin-bottom:15px;">
+                    👁️ Mostrar/Editar Meus Dados
+                </button>
+
+                <div id="myDataSection" style="display:none;">
+                    <div class="form-group">
+                        <label>Nome Civil Completo</label>
+                        <input type="text" id="contr_nome_civil" placeholder="Nome completo para fins legais">
+                    </div>
+                    <div class="grid">
+                        <div class="form-group">
+                            <label>CPF</label>
+                            <input type="text" id="contr_cpf" placeholder="000.000.000-00" maxlength="14">
+                        </div>
+                        <div class="form-group">
+                            <label>RG</label>
+                            <input type="text" id="contr_rg" placeholder="00.000.000-0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Endereço Completo</label>
+                        <input type="text" id="contr_end" placeholder="Rua, número, bairro, cidade - UF, CEP">
+                    </div>
+                    <div class="form-group">
+                        <label>Nome Artístico</label>
+                        <input type="text" id="contr_nome_artistico" placeholder="DJ Brow">
+                    </div>
+                    <div class="form-group">
+                        <label>Minha Assinatura Digital</label>
+                        <div class="sig-wrapper">
+                            <canvas id="djSignaturePad"></canvas>
+                        </div>
+                        <button type="button" id="btnClearSig" class="btn btn-outline btn-sm" style="margin-top:8px;">
+                            ✏️ Limpar Assinatura
+                        </button>
+                        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:8px;">
+                            Desenhe sua assinatura acima. Será salva automaticamente.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="section-title">2. Dados do Cliente</div>
+                <div class="form-group">
+                    <label>Nome do Cliente / Empresa</label>
+                    <input type="text" id="cli_nome" required placeholder="Nome completo ou razão social">
+                </div>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>CPF/CNPJ</label>
+                        <input type="text" id="cli_cpf" required placeholder="000.000.000-00" maxlength="18">
+                    </div>
+                    <div class="form-group">
+                        <label>Telefone (WhatsApp)</label>
+                        <input type="text" id="cli_tel" placeholder="(00) 00000-0000" maxlength="15" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Endereço do Cliente</label>
+                    <input type="text" id="cli_end" placeholder="Opcional">
+                </div>
+
+                <div class="section-title">3. Detalhes do Evento</div>
+                <div class="form-group">
+                    <label>Tipo de Evento</label>
+                    <select id="evt_tipo" required>
+                        <option value="">Selecione...</option>
+                        <option value="Casamento">Casamento</option>
+                        <option value="Aniversário">Aniversário</option>
+                        <option value="Formatura">Formatura</option>
+                        <option value="Corporativo">Corporativo</option>
+                        <option value="Festa Privada">Festa Privada</option>
+                        <option value="Evento Público">Evento Público</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Local do Evento</label>
+                    <input type="text" id="evt_local" required placeholder="Endereço completo do local">
+                </div>
+                <div class="form-group">
+                    <label>Data do Evento</label>
+                    <input type="date" id="evt_data" required>
+                </div>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Horário de Início</label>
+                        <input type="time" id="evt_inicio" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Horário de Término</label>
+                        <input type="time" id="evt_termino" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Valor Total (R$)</label>
+                    <input type="text" id="evt_valor" placeholder="0,00" required oninput="maskMoneyInput(this)">
+                </div>
+                <div class="form-group">
+                    <label>Forma de Pagamento</label>
+                    <select id="evt_pagamento">
+                        <option value="50% sinal + 50% dia do evento">50% sinal + 50% dia do evento</option>
+                        <option value="30% reserva + 70% semana anterior">30% reserva + 70% semana anterior</option>
+                        <option value="100% antecipado">100% antecipado</option>
+                        <option value="Parcelado em 3x">Parcelado em 3x</option>
+                        <option value="À combinar">À combinar</option>
+                    </select>
+                </div>
+
+                <div class="section-title">4. Cláusulas do Contrato</div>
+                <div class="clause-editor">
+                    <label>
+                        <input type="checkbox" id="clause_cancel" checked>
+                        <span>Cláusula de Cancelamento e Multa</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" id="clause_equip" checked>
+                        <span>Responsabilidade por Equipamento</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" id="clause_force" checked>
+                        <span>Force Majeure (Casos de Força Maior)</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" id="clause_image" checked>
+                        <span>Direito de Imagem e Divulgação</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" id="clause_electric">
+                        <span>Responsabilidade sobre Energia Elétrica</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" id="clause_exclusivity">
+                        <span>Exclusividade do Contratado no Evento</span>
+                    </label>
+                </div>
+
+                <div style="margin-top:25px; display:flex; flex-direction:column; gap:10px;">
+                    <button type="button" id="btnGenerate" class="btn btn-primary btn-block">
+                        🚀 Gerar Contrato com Hash
+                    </button>
+                    <button type="button" id="btnSave" class="btn btn-success btn-block">
+                        💾 Salvar no Histórico
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="editorContainer">
+        <div class="no-print">
+            <button onclick="printContract()" class="btn btn-primary">🖨️ Imprimir / Salvar PDF</button>
+            <button onclick="downloadContract()" class="btn btn-success">📥 Baixar HTML</button>
+            <button onclick="document.getElementById('editorContainer').style.display='none'" class="btn btn-outline">✖️ Fechar</button>
+        </div>
+        <div id="contractContent"></div>
+    </div>
+
+    <script src="util.js"></script>
+    <script>
+        const canvas = document.getElementById('djSignaturePad');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+
+        function setupCanvas() {
+            const ratio = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * ratio;
+            canvas.height = rect.height * ratio;
+            ctx.scale(ratio, ratio);
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#000';
+
+            const saved = localStorage.getItem('dj_brow_signature');
+            if(saved) {
+                const img = new Image();
+                img.onload = () => ctx.drawImage(img, 0, 0, rect.width, rect.height);
+                img.src = saved;
+            }
+        }
+
+        function getPointerPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            drawing = true;
+            const pos = getPointerPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        });
+
+        window.addEventListener('mouseup', () => {
+            if(drawing) {
+                drawing = false;
+                localStorage.setItem('dj_brow_signature', canvas.toDataURL());
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if(!drawing) return;
+            const pos = getPointerPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            drawing = true;
+            const pos = getPointerPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if(!drawing) return;
+            const pos = getPointerPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('touchend', () => {
+            drawing = false;
+            localStorage.setItem('dj_brow_signature', canvas.toDataURL());
+        });
+
+        document.getElementById('btnToggleMyData').onclick = () => {
+            const s = document.getElementById('myDataSection');
+            s.style.display = s.style.display === 'none' ? 'block' : 'none';
+            if(s.style.display === 'block') {
+                setTimeout(setupCanvas, 100);
+            }
+        };
+
+        document.getElementById('btnClearSig').onclick = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            localStorage.removeItem('dj_brow_signature');
+            DJ_BROWW.toast('Assinatura limpa', 'info');
+        };
+
+        // Máscaras
+        document.getElementById('contr_cpf').addEventListener('input', function(e) {
+            e.target.value = DJ_BROWW.maskCPF(e.target.value);
+        });
+
+        document.getElementById('cli_cpf').addEventListener('input', function(e) {
+            const val = e.target.value.replace(/\D/g, '');
+            if (val.length > 11) {
+                e.target.value = DJ_BROWW.maskCNPJ(val);
+            } else {
+                e.target.value = DJ_BROWW.maskCPF(val);
+            }
+        });
+
+        document.getElementById('cli_tel').addEventListener('input', function(e) {
+            e.target.value = DJ_BROWW.maskPhone(e.target.value);
+        });
+
+        function maskMoneyInput(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value) {
+                const num = parseInt(value) / 100;
+                input.value = num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            } else {
+                input.value = '';
+            }
+        }
+
+        document.getElementById('btnSave').onclick = async () => {
+            const val = (id) => document.getElementById(id).value.trim();
+
+            if (!val('cli_nome') || !val('evt_data')) {
+                DJ_BROWW.toast('Preencha pelo menos Nome do Cliente e Data!', 'warning');
+                return;
+            }
+
+            const data = {
+                id: Date.now(),
+                cliente: val('cli_nome'),
+                tel: val('cli_tel').replace(/\D/g, ''),
+                data: val('evt_data'),
+                valor: DJ_BROWW.unmaskMoney(val('evt_valor')),
+                pago: 0,
+                tipo: val('evt_tipo'),
+                local: val('evt_local'),
+                inicio: val('evt_inicio'),
+                termino: val('evt_termino'),
+                status: 'A Concluir',
+                pagamento: val('evt_pagamento'),
+                createdAt: new Date().toISOString()
+            };
+
+            const history = await DJ_BROWW.safeGet('dj_brow_contracts_history', []);
+            history.push(data);
+            await DJ_BROWW.safeSet('dj_brow_contracts_history', history);
+
+            DJ_BROWW.toast('✅ Salvo no Histórico com sucesso!', 'success');
+        };
+
+        document.getElementById('btnGenerate').onclick = async () => {
+            const val = (id) => document.getElementById(id).value.trim();
+            const sig = localStorage.getItem('dj_brow_signature');
+
+            // Validar campos obrigatórios
+            if (!val('cli_nome') || !val('evt_data') || !val('evt_valor')) {
+                DJ_BROWW.toast('Preencha Nome do Cliente, Data e Valor!', 'warning');
+                return;
+            }
+
+            const valorNumerico = DJ_BROWW.unmaskMoney(val('evt_valor'));
+            const dataFormatada = DJ_BROWW.formatDateLong(val('evt_data'));
+            const dataCurta = DJ_BROWW.formatDateBR(val('evt_data'));
+
+            // Gerar hash do contrato
+            const contractText = `${val('contr_nome_civil')}${val('cli_nome')}${val('evt_data')}${valorNumerico}${Date.now()}`;
+            const hash = await DJ_BROWW.sha256(contractText);
+            const hashDisplay = hash.substring(0, 16) + '...' + hash.substring(hash.length - 16);
+
+            // Cláusulas selecionadas
+            const clauses = [];
+
+            if (document.getElementById('clause_cancel').checked) {
+                clauses.push({
+                    title: 'CLÁUSULA 4 — CANCELAMENTO E MULTA',
+                    text: `Em caso de desistência por parte do CONTRATANTE, serão aplicadas as seguintes multas:
+                    <br><br>a) Cancelamento com mais de 30 dias de antecedência: devolução de 70% do valor pago;
+                    b) Cancelamento entre 30 e 15 dias: devolução de 50% do valor pago;
+                    c) Cancelamento entre 14 e 7 dias: devolução de 30% do valor pago;
+                    d) Cancelamento com menos de 7 dias: não haverá devolução.
+                    <br><br>O CONTRATADO poderá indicar substituto de igual qualificação, caso não possa comparecer por motivo de doença comprovada ou caso fortuito.`
+                });
+            }
+
+            if (document.getElementById('clause_equip').checked) {
+                clauses.push({
+                    title: 'CLÁUSULA 5 — RESPONSABILIDADE PELO EQUIPAMENTO',
+                    text: `O CONTRATADO é responsável pelo transporte, montagem, operação e desmontagem de seu próprio equipamento. O CONTRATANTE se compromete a fornecer acesso adequado ao local para carga e descarga, bem como local seguro para estacionamento.
+                    <br><br>Em caso de danos causados por terceiros no evento, o CONTRATANTE se responsabiliza pelos reparos ou reposição.`
+                });
+            }
+
+            if (document.getElementById('clause_force').checked) {
+                clauses.push({
+                    title: 'CLÁUSULA 6 — FORÇA MAIOR',
+                    text: `Nenhuma das partes será responsabilizada por falha ou atraso no cumprimento de suas obrigações quando tal falha ou atraso for resultado de caso fortuito ou força maior, incluindo, mas não se limitando a: desastres naturais, epidemias, atos governamentais, greves, ou falta de energia elétrica no local do evento.
+                    <br><br>Nestes casos, as partes deverão remarcar a data do evento em comum acordo, sem custos adicionais.`
+                });
+            }
+
+            if (document.getElementById('clause_image').checked) {
+                clauses.push({
+                    title: 'CLÁUSULA 7 — DIREITO DE IMAGEM',
+                    text: `O CONTRATANTE autoriza o CONTRATADO a utilizar imagens e vídeos do evento para fins de portfólio profissional, divulgação em redes sociais e materiais promocionais, respeitada a privacidade dos convidados. O CONTRATADO se compromete a não divulgar conteúdo que possa causar constrangimento ao CONTRATANTE.`
+                });
+            }
+
+            if (document.getElementById('clause_electric').checked) {
+                clauses.push({
+                    title: 'CLÁUSULA 8 — INSTALAÇÃO ELÉTRICA',
+                    text: `O CONTRATANTE declara que o local do evento possui instalação elétrica adequada para o funcionamento do equipamento do CONTRATADO, incluindo aterramento e capacidade mínima de 3000W. O CONTRATADO não se responsabiliza por danos causados por falhas na rede elétrica do local.`
+                });
+            }
+
+            if (document.getElementById('clause_exclusivity').checked) {
+                clauses.push({
+                    title: 'CLÁUSULA 9 — EXCLUSIVIDADE',
+                    text: `O CONTRATANTE se compromete a não contratar outros profissionais de som/DJ para o mesmo evento sem prévia autorização do CONTRATADO, garantindo a qualidade técnica e artística da apresentação.`
+                });
+            }
+
+            const clausesHtml = clauses.map((c, i) => `
+                <div class="contract-section">
+                    <h3>${DJ_BROWW.escapeHtml(c.title)}</h3>
+                    <p>${c.text}</p>
+                </div>
+            `).join('');
+
+            const content = `
+                <h2>CONTRATO DE PRESTAÇÃO DE SERVIÇOS MUSICAIS</h2>
+
+                <div class="contract-section">
+                    <p><strong>CONTRATADO:</strong> ${DJ_BROWW.escapeHtml(val('contr_nome_civil') || 'DJ BROW')}, 
+                    portador do CPF: ${DJ_BROWW.escapeHtml(val('contr_cpf') || '---')}, 
+                    RG: ${DJ_BROWW.escapeHtml(val('contr_rg') || '---')}, 
+                    residente e domiciliado em ${DJ_BROWW.escapeHtml(val('contr_end') || '[Endereço não informado]')}.</p>
+                </div>
+
+                <div class="contract-section">
+                    <p><strong>CONTRATANTE:</strong> ${DJ_BROWW.escapeHtml(val('cli_nome'))}, 
+                    inscrito no CPF/CNPJ: ${DJ_BROWW.escapeHtml(val('cli_cpf'))}, 
+                    ${val('cli_end') ? `residente em ${DJ_BROWW.escapeHtml(val('cli_end'))},` : ''}
+                    telefone: ${DJ_BROWW.escapeHtml(val('cli_tel'))}.</p>
+                </div>
+
+                <div class="contract-section">
+                    <h3>CLÁUSULA 1 — OBJETO</h3>
+                    <p>O presente contrato tem por objeto a prestação de serviços musicais pelo CONTRATADO, 
+                    atuando como DJ profissional no evento de <strong>${DJ_BROWW.escapeHtml(val('evt_tipo'))}</strong>, 
+                    a ser realizado no dia <strong>${dataCurta}</strong>, 
+                    no local <strong>${DJ_BROWW.escapeHtml(val('evt_local'))}</strong>, 
+                    no horário das <strong>${val('evt_inicio')}</strong> às <strong>${val('evt_termino')}</strong>.</p>
+                </div>
+
+                <div class="contract-section">
+                    <h3>CLÁUSULA 2 — VALOR E FORMA DE PAGAMENTO</h3>
+                    <p>O valor total dos serviços é de <strong>${valorNumerico.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</strong>.
+                    <br><br>Forma de pagamento: <strong>${DJ_BROWW.escapeHtml(val('evt_pagamento'))}</strong>.
+                    <br><br>O atraso no pagamento acarretará multa de 2% ao mês e juros de 1% ao mês, conforme legislação vigente.</p>
+                </div>
+
+                <div class="contract-section">
+                    <h3>CLÁUSULA 3 — OBRIGAÇÕES DO CONTRATADO</h3>
+                    <p>a) Comparecer no local com antecedência mínima de 60 minutos para montagem e testes;<br>
+                    b) Fornecer equipamento de som e iluminação em perfeito estado de funcionamento;<br>
+                    c) Manter postura profissional durante todo o evento;<br>
+                    d) Respeitar o horário contratado, com tolerância de 15 minutos para encerramento;<br>
+                    e) Não se responsabilizar por problemas técnicos causados por instalação elétrica inadequada do local.</p>
+                </div>
+
+                ${clausesHtml}
+
+                <div class="contract-section">
+                    <h3>CLÁUSULA ${clauses.length + 4} — DISPOSIÇÕES GERAIS</h3>
+                    <p>Este contrato é firmado em caráter irrevogável e irretratável, obrigando as partes e seus sucessores.
+                    <br><br>Fica eleito o foro da comarca do CONTRATADO para dirimir quaisquer dúvidas ou controvérsias oriundas do presente instrumento.
+                    <br><br>E por estarem assim justos e contratados, firmam o presente instrumento em 02 (duas) vias de igual teor e forma.</p>
+                </div>
+
+                <div class="signature-area">
+                    <p>${dataFormatada}</p>
+                    <br><br><br>
+                    <div>
+                        ${sig ? `<img src="${DJ_BROWW.escapeAttr(sig)}" style="max-height:80px; margin-bottom:5px;"><br>` : ''}
+                        <div class="signature-line"></div>
+                        <p><strong>${DJ_BROWW.escapeHtml(val('contr_nome_civil') || 'DJ BROW')}</strong><br>Contratado</p>
+                    </div>
+                    <br><br><br>
+                    <div>
+                        <div class="signature-line"></div>
+                        <p><strong>${DJ_BROWW.escapeHtml(val('cli_nome'))}</strong><br>Contratante</p>
+                    </div>
+                </div>
+
+                <div class="hash-footer">
+                    <p><strong>ASSINATURA DIGITAL — DOCUMENTO AUTENTICADO</strong></p>
+                    <p>Hash de integridade: ${hashDisplay}</p>
+                    <p>Gerado em: ${new Date().toLocaleString('pt-BR')} | DJ Brow Sistema v4.0</p>
+                    <p style="font-size:0.6rem; margin-top:5px;">Este documento possui validade jurídica como prova digital conforme MP 2.200-2/2001 e Lei 14.063/2020.</p>
+                </div>
+            `;
+
+            document.getElementById('contractContent').innerHTML = content;
+            document.getElementById('editorContainer').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+
+            // Salvar hash para referência
+            localStorage.setItem('dj_brow_last_contract_hash', hash);
+        };
+
+        function printContract() {
+            window.print();
+        }
+
+        function downloadContract() {
+            const content = document.getElementById('contractContent').innerHTML;
+            const fullHtml = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Contrato DJ Brow</title>
+<style>
+body { font-family: 'Times New Roman', serif; line-height:1.8; max-width:800px; margin:0 auto; padding:40px; }
+h2 { text-align:center; text-transform:uppercase; letter-spacing:2px; }
+.contract-section { margin-bottom:20px; text-align:justify; }
+.signature-area { margin-top:50px; text-align:center; }
+.signature-line { border-top:1px solid #000; width:280px; margin:10px auto 5px; }
+.hash-footer { margin-top:40px; padding-top:20px; border-top:1px dashed #ccc; font-size:0.7rem; color:#666; text-align:center; font-family:'Courier New',monospace; word-break:break-all; }
+</style>
+</head>
+<body>${content}</body>
+</html>`;
+
+            const blob = new Blob([fullHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `contrato_dj_brow_${new Date().toISOString().split('T')[0]}.html`;
+            a.click();
+            URL.revokeObjectURL(url);
+            DJ_BROWW.toast('Contrato baixado!', 'success');
+        }
+
+        // Carregar dados salvos e do orçamento
+        window.onload = async () => {
+            // Carregar dados do contratado
+            const saved = await DJ_BROWW.safeGet('dj_brow_contract_data_v3', {});
+            for(let key in saved) {
+                if(document.getElementById(key)) {
+                    document.getElementById(key).value = saved[key];
+                }
+            }
+
+            // Verificar se há dados do orçamento
+            const orcamentoValor = localStorage.getItem('dj_brow_orcamento_valor');
+            const orcamentoEvento = localStorage.getItem('dj_brow_orcamento_evento');
+
+            if (orcamentoValor) {
+                document.getElementById('evt_valor').value = 
+                    parseFloat(orcamentoValor).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                document.getElementById('dataLoadedNotice').style.display = 'block';
+            }
+
+            if (orcamentoEvento) {
+                try {
+                    const evento = JSON.parse(orcamentoEvento);
+                    if (evento.cliente) document.getElementById('cli_nome').value = evento.cliente;
+                    if (evento.cpf) document.getElementById('cli_cpf').value = evento.cpf;
+                    if (evento.tel) document.getElementById('cli_tel').value = evento.tel;
+                    if (evento.tipo) document.getElementById('evt_tipo').value = evento.tipo;
+                    if (evento.local) document.getElementById('evt_local').value = evento.local;
+                    if (evento.data) document.getElementById('evt_data').value = evento.data;
+                    if (evento.inicio) document.getElementById('evt_inicio').value = evento.inicio;
+                    if (evento.termino) document.getElementById('evt_termino').value = evento.termino;
+                } catch(e) {}
+            }
+
+            // Limpar dados do orçamento após carregar
+            localStorage.removeItem('dj_brow_orcamento_valor');
+            localStorage.removeItem('dj_brow_orcamento_evento');
+        };
+
+        // Auto-salvar dados do contratado
+        document.querySelectorAll('#myDataSection input').forEach(i => {
+            i.onchange = async () => {
+                const data = {};
+                document.querySelectorAll('#myDataSection input').forEach(input => {
+                    data[input.id] = input.value;
+                });
+                await DJ_BROWW.safeSet('dj_brow_contract_data_v3', data);
+            };
+        });
+
+        // Fechar editor restaura scroll
+        document.querySelector('#editorContainer .btn-outline').addEventListener('click', () => {
+            document.body.style.overflow = '';
+        });
+    </script>
+</body>
+</html>

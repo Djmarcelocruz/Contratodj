@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>DJ Brow — Calculadora ROI v4.0</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <style>
+        .roi-card {
+            background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(0,255,136,0.05));
+            border: 1px solid rgba(0,212,255,0.2);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .roi-card h2 {
+            color: var(--info);
+            font-size: 2rem;
+            margin: 10px 0;
+        }
+
+        .roi-card p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .result-item {
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 15px;
+            text-align: center;
+        }
+
+        .result-item .value {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--primary);
+            display: block;
+        }
+
+        .result-item .label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        .progress-bar {
+            background: #000;
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+            margin-top: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--info));
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #000;
+        }
+
+        @media (max-width: 600px) {
+            .result-grid { grid-template-columns: 1fr; }
+            .roi-card h2 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-menu">
+        <a href="index.html">🏠<br>Início</a>
+        <a href="controleeorcamento.html">💰<br>Orçamento</a>
+        <a href="dj_contract_juridico_atualizado.html">📄<br>Contrato</a>
+        <a href="historico_contratos.html">📋<br>Histórico</a>
+        <a href="calculadora_roi.html" class="active">📊<br>ROI</a>
+    </nav>
+
+    <div class="container">
+        <h1>📊 Calculadora ROI</h1>
+
+        <div class="roi-card">
+            <p>Retorno sobre Investimento</p>
+            <h2 id="roiValue">0%</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="roiProgress" style="width:0%">0%</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">💰 Investimentos</div>
+            <div class="grid">
+                <div class="form-group">
+                    <label>Custo do Equipamento R$</label>
+                    <input type="text" id="invest_equip" placeholder="0,00" oninput="maskMoneyInput(this); calculateROI()">
+                </div>
+                <div class="form-group">
+                    <label>Custo de Marketing R$</label>
+                    <input type="text" id="invest_marketing" placeholder="0,00" oninput="maskMoneyInput(this); calculateROI()">
+                </div>
+            </div>
+            <div class="grid">
+                <div class="form-group">
+                    <label>Cursos/Treinamentos R$</label>
+                    <input type="text" id="invest_education" placeholder="0,00" oninput="maskMoneyInput(this); calculateROI()">
+                </div>
+                <div class="form-group">
+                    <label>Outros Investimentos R$</label>
+                    <input type="text" id="invest_other" placeholder="0,00" oninput="maskMoneyInput(this); calculateROI()">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">📈 Retornos</div>
+            <div class="grid">
+                <div class="form-group">
+                    <label>Faturamento Anual R$</label>
+                    <input type="text" id="return_revenue" placeholder="0,00" oninput="maskMoneyInput(this); calculateROI()">
+                </div>
+                <div class="form-group">
+                    <label>Eventos no Ano</label>
+                    <input type="number" id="return_events" placeholder="0" oninput="calculateROI()">
+                </div>
+            </div>
+        </div>
+
+        <div class="card" id="resultsCard" style="display:none;">
+            <div class="section-title">📊 Resultados</div>
+            <div class="result-grid">
+                <div class="result-item">
+                    <span class="value" id="resultTotalInvest">R$ 0</span>
+                    <span class="label">Investimento Total</span>
+                </div>
+                <div class="result-item">
+                    <span class="value" id="resultNetProfit">R$ 0</span>
+                    <span class="label">Lucro Líquido</span>
+                </div>
+                <div class="result-item">
+                    <span class="value" id="resultPerEvent">R$ 0</span>
+                    <span class="label">Média por Evento</span>
+                </div>
+                <div class="result-item">
+                    <span class="value" id="resultPayback">0 meses</span>
+                    <span class="label">Payback</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-box" style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
+            <button class="btn btn-primary btn-block" onclick="copyROIReport()">📋 Copiar Relatório</button>
+            <button class="btn btn-outline btn-block" onclick="resetROI()">🗑️ Limpar</button>
+        </div>
+    </div>
+
+    <script src="util.js"></script>
+    <script>
+        function maskMoneyInput(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value) {
+                const num = parseInt(value) / 100;
+                input.value = num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            } else {
+                input.value = '';
+            }
+        }
+
+        function getVal(id) {
+            const el = document.getElementById(id);
+            if (!el) return 0;
+            const val = el.value.replace(/\./g, '').replace(',', '.');
+            return parseFloat(val) || 0;
+        }
+
+        function calculateROI() {
+            const investEquip = getVal('invest_equip');
+            const investMarketing = getVal('invest_marketing');
+            const investEducation = getVal('invest_education');
+            const investOther = getVal('invest_other');
+            const revenue = getVal('return_revenue');
+            const events = getVal('return_events') || 1;
+
+            const totalInvest = investEquip + investMarketing + investEducation + investOther;
+            const netProfit = revenue - totalInvest;
+            const roi = totalInvest > 0 ? ((netProfit / totalInvest) * 100) : 0;
+            const perEvent = revenue / events;
+            const payback = netProfit > 0 ? Math.ceil(totalInvest / (netProfit / 12)) : 0;
+
+            // Atualizar display
+            document.getElementById('roiValue').textContent = roi.toFixed(1) + '%';
+            document.getElementById('roiProgress').style.width = Math.min(Math.max(roi, 0), 100) + '%';
+            document.getElementById('roiProgress').textContent = roi.toFixed(1) + '%';
+
+            // Mostrar resultados se houver dados
+            if (totalInvest > 0 || revenue > 0) {
+                document.getElementById('resultsCard').style.display = 'block';
+                document.getElementById('resultTotalInvest').textContent = totalInvest.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+                document.getElementById('resultNetProfit').textContent = netProfit.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+                document.getElementById('resultPerEvent').textContent = perEvent.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+                document.getElementById('resultPayback').textContent = payback > 0 ? payback + ' meses' : 'N/A';
+            }
+
+            return { totalInvest, netProfit, roi, perEvent, payback };
+        }
+
+        function copyROIReport() {
+            const r = calculateROI();
+            const report = `📊 RELATÓRIO ROI - DJ BROWW
+━━━━━━━━━━━━━━━━━━━━━━
+💰 INVESTIMENTOS:
+• Equipamento: ${getVal('invest_equip').toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+• Marketing: ${getVal('invest_marketing').toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+• Educação: ${getVal('invest_education').toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+• Outros: ${getVal('invest_other').toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+• TOTAL: ${r.totalInvest.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+
+📈 RETORNOS:
+• Faturamento Anual: ${getVal('return_revenue').toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+• Eventos Realizados: ${getVal('return_events')}
+• Média por Evento: ${r.perEvent.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+
+✅ RESULTADOS:
+• Lucro Líquido: ${r.netProfit.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+• ROI: ${r.roi.toFixed(1)}%
+• Payback: ${r.payback > 0 ? r.payback + ' meses' : 'N/A'}
+━━━━━━━━━━━━━━━━━━━━━━`;
+
+            navigator.clipboard.writeText(report).then(() => {
+                DJ_BROWW.toast('Relatório ROI copiado!', 'success');
+            });
+        }
+
+        function resetROI() {
+            DJ_BROWW.confirm('Limpar todos os campos?', () => {
+                document.querySelectorAll('input').forEach(i => i.value = '');
+                document.getElementById('resultsCard').style.display = 'none';
+                document.getElementById('roiValue').textContent = '0%';
+                document.getElementById('roiProgress').style.width = '0%';
+                DJ_BROWW.toast('Campos limpos', 'info');
+            });
+        }
+    </script>
+</body>
+</html>

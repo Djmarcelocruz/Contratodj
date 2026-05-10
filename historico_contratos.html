@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>DJ Brow — Histórico Financeiro v4.0</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <style>
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px; 
+            margin-bottom: 15px; 
+        }
+
+        .stat-card { 
+            background: rgba(255,255,255,0.02); 
+            border: 1px solid var(--border); 
+            padding: 18px; 
+            border-radius: var(--radius); 
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            border-color: var(--border-light);
+            transform: translateY(-2px);
+        }
+
+        .stat-card h3 { 
+            margin: 0; 
+            font-size: 0.65rem; 
+            color: var(--text-muted); 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+        }
+
+        .stat-card .value { 
+            font-size: 1.3rem; 
+            font-weight: 800; 
+            margin-top: 8px; 
+            display: block;
+        }
+
+        .val-bolso { color: var(--primary); }
+        .val-receber { color: var(--danger); }
+        .val-total { color: var(--info); }
+
+        .filter-bar { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px; 
+            margin-bottom: 15px; 
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .search-box input {
+            padding-left: 40px;
+        }
+
+        .search-box::before {
+            content: '🔍';
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1rem;
+        }
+
+        .event-card { 
+            background: var(--card); 
+            border: 1px solid var(--border); 
+            border-radius: var(--radius); 
+            padding: 18px; 
+            margin-bottom: 15px; 
+            position: relative;
+            transition: var(--transition);
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .event-card:hover {
+            border-color: var(--border-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .event-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-start; 
+            margin-bottom: 12px; 
+            border-bottom: 1px solid var(--border); 
+            padding-bottom: 10px; 
+        }
+
+        .event-date { 
+            font-size: 0.9rem; 
+            font-weight: 700; 
+            color: var(--primary); 
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .countdown { 
+            font-size: 0.7rem; 
+            background: rgba(0,255,136,0.1); 
+            color: var(--primary); 
+            padding: 3px 8px; 
+            border-radius: 20px; 
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .countdown.urgent {
+            background: rgba(255,68,68,0.1);
+            color: var(--danger);
+            animation: pulse 2s infinite;
+        }
+
+        .countdown.done {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-muted);
+        }
+
+        .event-client { 
+            font-size: 1.1rem; 
+            font-weight: 700; 
+            margin: 8px 0; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .event-details { 
+            font-size: 0.8rem; 
+            color: var(--text-muted); 
+            line-height: 1.6; 
+        }
+
+        .finance-box { 
+            background: #000; 
+            padding: 15px; 
+            border-radius: var(--radius-sm); 
+            margin: 15px 0; 
+            display: grid; 
+            grid-template-columns: 1fr 1fr 1fr; 
+            gap: 8px; 
+            text-align: center; 
+            border: 1px solid var(--border);
+        }
+
+        .finance-item { 
+            font-size: 0.65rem; 
+            color: var(--text-dim); 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .finance-value { 
+            font-size: 0.95rem; 
+            font-weight: 700; 
+            color: #fff; 
+            display: block; 
+            margin-top: 4px; 
+        }
+
+        .finance-saldo { color: var(--danger); }
+        .finance-pago { color: var(--primary); }
+
+        .event-footer { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-top: 15px; 
+            padding-top: 12px; 
+            border-top: 1px solid var(--border); 
+        }
+
+        .event-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .receipt-paper { 
+            background: white; 
+            color: black; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 40px; 
+            border-radius: 5px; 
+            font-family: 'Times New Roman', serif;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .receipt-paper h2 {
+            color: #000;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .receipt-paper .receipt-number {
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            padding: 5px;
+            display: inline-block;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.3;
+        }
+
+        @media print {
+            body * { visibility: hidden; }
+            #receiptModal, #receiptModal * { visibility: visible; }
+            #receiptModal { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                background: white; 
+                padding: 0; 
+            }
+            .receipt-paper { 
+                box-shadow: none; 
+                margin: 0; 
+                width: 100%; 
+            }
+            .no-print { display: none !important; }
+        }
+
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .finance-box { grid-template-columns: 1fr; gap: 10px; }
+            .event-footer { flex-direction: column; gap: 10px; align-items: stretch; }
+            .event-actions { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-menu">
+        <a href="index.html">🏠<br>Início</a>
+        <a href="controleeorcamento.html">💰<br>Orçamento</a>
+        <a href="dj_contract_juridico_atualizado.html">📄<br>Contrato</a>
+        <a href="historico_contratos.html" class="active">📋<br>Histórico</a>
+        <a href="calculadora_roi.html">📊<br>ROI</a>
+    </nav>
+
+    <div class="container">
+        <h1>📋 Gestão Financeira DJ</h1>
+
+        <!-- Painel de Caixa -->
+        <div class="stats-grid">
+            <div class="stat-card" style="grid-column: span 2; background: rgba(0,212,255,0.05); border-color: rgba(0,212,255,0.2);">
+                <h3>Faturamento Total (Contratos)</h3>
+                <div id="totalFaturamento" class="value val-total">R$ 0,00</div>
+            </div>
+            <div class="stat-card">
+                <h3>Dinheiro no Bolso</h3>
+                <div id="totalPago" class="value val-bolso">R$ 0,00</div>
+            </div>
+            <div class="stat-card">
+                <h3>A Receber</h3>
+                <div id="totalSaldo" class="value val-receber">R$ 0,00</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="filter-bar">
+                <select id="filterMonth">
+                    <option value="all">Todos os Meses</option>
+                    <option value="0">Janeiro</option>
+                    <option value="1">Fevereiro</option>
+                    <option value="2">Março</option>
+                    <option value="3">Abril</option>
+                    <option value="4">Maio</option>
+                    <option value="5">Junho</option>
+                    <option value="6">Julho</option>
+                    <option value="7">Agosto</option>
+                    <option value="8">Setembro</option>
+                    <option value="9">Outubro</option>
+                    <option value="10">Novembro</option>
+                    <option value="11">Dezembro</option>
+                </select>
+                <input type="number" id="filterYear" placeholder="Ano" value="2026">
+            </div>
+
+            <div class="search-box">
+                <input type="text" id="searchClient" placeholder="Buscar cliente ou local...">
+            </div>
+
+            <div id="eventList"></div>
+            <div id="paginationContainer"></div>
+        </div>
+    </div>
+
+    <!-- Modal: Registrar Pagamento -->
+    <div id="paymentModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>💰 Registrar Pagamento</h3>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">
+                Informe o valor que o cliente está pagando agora.
+            </p>
+            <div style="margin-bottom:15px;">
+                <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:5px;">
+                    Valor Pago Agora (R$)
+                </label>
+                <input type="text" id="paymentValue" placeholder="0,00" oninput="maskMoneyInput(this)">
+                <small style="color:var(--text-dim); display:block; margin-top:5px;">
+                    Saldo restante: <span id="currentSaldo" style="color:var(--danger); font-weight:700;"></span>
+                </small>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <button onclick="savePayment()" class="btn btn-success">Confirmar</button>
+                <button onclick="closePaymentModal()" class="btn btn-outline">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Gerar Recibo -->
+    <div id="receiptEditModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>📄 Gerar Recibo</h3>
+            <div style="margin-bottom:15px;">
+                <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:5px;">
+                    Valor do Recibo (R$)
+                </label>
+                <input type="text" id="editReceiptValue" placeholder="0,00" oninput="maskMoneyInput(this)">
+            </div>
+            <div style="margin-bottom:15px;">
+                <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:5px;">
+                    Referente a:
+                </label>
+                <select id="editReceiptRef">
+                    <option value="Sinal de Reserva (20%)">Sinal de Reserva (20%)</option>
+                    <option value="Pagamento Parcial">Pagamento Parcial</option>
+                    <option value="Quitação Total">Quitação Total</option>
+                    <option value="Reserva de Data">Reserva de Data</option>
+                    <option value="Pagamento Adicional">Pagamento Adicional</option>
+                </select>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <button onclick="confirmReceipt()" class="btn btn-success">Gerar</button>
+                <button onclick="closeEditModal()" class="btn btn-outline">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Visualizar Recibo -->
+    <div id="receiptModal" class="modal-overlay" style="background: rgba(0,0,0,0.95);">
+        <div class="no-print" style="max-width:600px; margin:0 auto 10px; display:flex; justify-content:flex-end; gap:10px; padding: 15px;">
+            <button onclick="window.print()" class="btn btn-success">🖨️ Imprimir</button>
+            <button onclick="downloadReceipt()" class="btn btn-primary">📥 Salvar</button>
+            <button onclick="closeReceipt()" class="btn btn-danger">✖️ Fechar</button>
+        </div>
+        <div id="receiptArea" class="receipt-paper"></div>
+    </div>
+
+    <script src="util.js"></script>
+    <script>
+        let currentItem = null;
+        let currentPage = 1;
+        let allItems = [];
+        const ITEMS_PER_PAGE = 10;
+
+        async function getHistory() { 
+            return await DJ_BROWW.safeGet('dj_brow_contracts_history', []); 
+        }
+
+        async function render() {
+            const history = await getHistory();
+            const searchTerm = document.getElementById('searchClient').value.toLowerCase();
+            const month = document.getElementById('filterMonth').value;
+            const year = document.getElementById('filterYear').value;
+
+            const filtered = history.filter(item => {
+                const itemDate = new Date(item.data + 'T00:00:00');
+                const matchesSearch = (item.cliente || '').toLowerCase().includes(searchTerm) || 
+                                     (item.local || '').toLowerCase().includes(searchTerm) ||
+                                     (item.tipo || '').toLowerCase().includes(searchTerm);
+                const matchesMonth = month === 'all' || itemDate.getMonth() == month;
+                const matchesYear = !year || itemDate.getFullYear() == year;
+                return matchesSearch && matchesMonth && matchesYear;
+            }).sort((a, b) => new Date(b.data) - new Date(a.data));
+
+            allItems = filtered;
+
+            // Estatísticas
+            const totalFaturamento = filtered.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0);
+            const totalPago = filtered.reduce((sum, item) => sum + (parseFloat(item.pago) || 0), 0);
+            const totalSaldo = totalFaturamento - totalPago;
+
+            document.getElementById('totalFaturamento').innerText = 
+                totalFaturamento.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('totalPago').innerText = 
+                totalPago.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('totalSaldo').innerText = 
+                totalSaldo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+            // Paginação
+            const paginated = DJ_BROWW.paginate(filtered, currentPage, ITEMS_PER_PAGE);
+
+            const listContainer = document.getElementById('eventList');
+            if (paginated.items.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📭</div>
+                        <p>Nenhum evento encontrado para este período.</p>
+                        <p style="font-size:0.8rem; margin-top:10px;">Adicione um novo contrato para começar.</p>
+                    </div>
+                `;
+                document.getElementById('paginationContainer').innerHTML = '';
+                return;
+            }
+
+            listContainer.innerHTML = paginated.items.map((item, index) => {
+                const valor = parseFloat(item.valor) || 0;
+                const pago = parseFloat(item.pago) || 0;
+                const saldo = valor - pago;
+                const countdown = DJ_BROWW.calculateCountdown(item.data);
+                const isPaid = saldo <= 0;
+
+                return `
+                <div class="event-card" style="animation-delay: ${index * 0.05}s">
+                    <div class="event-header">
+                        <span class="event-date">
+                            📅 ${DJ_BROWW.formatDateBR(item.data)} 
+                            <span class="countdown ${countdown.urgent ? 'urgent' : ''} ${countdown.class === 'countdown-past' ? 'done' : ''}">
+                                ${countdown.text}
+                            </span>
+                        </span>
+                        <span onclick="toggleStatus(${item.id})" class="badge ${item.status === 'Concluído' ? 'badge-done' : 'badge-pending'}">
+                            ${item.status || 'A Concluir'}
+                        </span>
+                    </div>
+                    <div class="event-client">
+                        👤 ${DJ_BROWW.escapeHtml(item.cliente)}
+                        ${item.tel ? `<a href="https://wa.me/55${item.tel.replace(/\D/g,'')}" target="_blank" class="btn btn-whatsapp btn-sm" style="text-decoration:none;">WhatsApp</a>` : ''}
+                    </div>
+                    <div class="event-details">
+                        <strong>Tipo:</strong> ${DJ_BROWW.escapeHtml(item.tipo || '---')} | 
+                        <strong>Local:</strong> ${DJ_BROWW.escapeHtml(item.local || '---')}<br>
+                        <strong>Horário:</strong> ${item.inicio || '--:--'} às ${item.termino || '--:--'}
+                        ${item.pagamento ? `<br><strong>Pagamento:</strong> ${DJ_BROWW.escapeHtml(item.pagamento)}` : ''}
+                    </div>
+                    <div class="finance-box">
+                        <div class="finance-item">
+                            Total
+                            <span class="finance-value">${valor.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</span>
+                        </div>
+                        <div class="finance-item">
+                            No Bolso
+                            <span class="finance-value finance-pago">${pago.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</span>
+                        </div>
+                        <div class="finance-item">
+                            ${isPaid ? '✅ Quitado' : 'A Receber'}
+                            <span class="finance-value ${isPaid ? 'finance-pago' : 'finance-saldo'}">
+                                ${saldo.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="event-footer">
+                        <div class="event-actions">
+                            ${!isPaid ? `<button onclick="openPaymentModal(${item.id})" class="btn btn-success btn-sm">💰 Pagar</button>` : ''}
+                            <button onclick="openEditModal(${item.id})" class="btn btn-warning btn-sm">📄 Recibo</button>
+                            <button onclick="editEvent(${item.id})" class="btn btn-outline btn-sm">✏️ Editar</button>
+                        </div>
+                        <button onclick="deleteItem(${item.id})" class="btn btn-outline btn-sm" style="color:var(--danger); border-color:var(--danger);">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            `}).join('');
+
+            // Renderizar paginação
+            const paginationContainer = document.getElementById('paginationContainer');
+            if (paginated.totalPages > 1) {
+                let html = '<div class="pagination">';
+                html += `<button ${paginated.hasPrev ? '' : 'disabled'} onclick="changePage(${paginated.currentPage - 1})">←</button>`;
+
+                for (let i = 1; i <= paginated.totalPages; i++) {
+                    if (i === 1 || i === paginated.totalPages || (i >= paginated.currentPage - 1 && i <= paginated.currentPage + 1)) {
+                        html += `<button class="${i === paginated.currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+                    } else if (i === paginated.currentPage - 2 || i === paginated.currentPage + 2) {
+                        html += '<span style="color:#666; padding:8px;">...</span>';
+                    }
+                }
+
+                html += `<button ${paginated.hasNext ? '' : 'disabled'} onclick="changePage(${paginated.currentPage + 1})">→</button>`;
+                html += '</div>';
+                html += `<div class="pagination-info">Mostrando ${(paginated.currentPage - 1) * ITEMS_PER_PAGE + 1}-${Math.min(paginated.currentPage * ITEMS_PER_PAGE, paginated.total)} de ${paginated.total}</div>`;
+                paginationContainer.innerHTML = html;
+            } else {
+                paginationContainer.innerHTML = '';
+            }
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            render();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function openPaymentModal(id) {
+            currentItem = allItems.find(h => h.id === id);
+            if (!currentItem) return;
+            const saldo = (parseFloat(currentItem.valor) || 0) - (parseFloat(currentItem.pago) || 0);
+            document.getElementById('currentSaldo').innerText = 
+                saldo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('paymentValue').value = saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('paymentModal').classList.add('active');
+        }
+
+        function maskMoneyInput(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value) {
+                const num = parseInt(value) / 100;
+                input.value = num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            } else {
+                input.value = '';
+            }
+        }
+
+        async function savePayment() {
+            const valorPago = DJ_BROWW.unmaskMoney(document.getElementById('paymentValue').value);
+            if (valorPago <= 0) {
+                DJ_BROWW.toast('Informe um valor válido!', 'warning');
+                return;
+            }
+
+            let history = await getHistory();
+            const index = history.findIndex(h => h.id === currentItem.id);
+            if (index === -1) return;
+
+            history[index].pago = (parseFloat(history[index].pago) || 0) + valorPago;
+            history[index].lastPayment = {
+                value: valorPago,
+                date: new Date().toISOString()
+            };
+
+            await DJ_BROWW.safeSet('dj_brow_contracts_history', history);
+            closePaymentModal();
+
+            const saldoRestante = (parseFloat(history[index].valor) || 0) - history[index].pago;
+            if (saldoRestante <= 0) {
+                DJ_BROWW.toast('✅ Evento quitado! Gere o recibo final.', 'success');
+            } else {
+                DJ_BROWW.toast(`Pagamento registrado! Resta ${saldoRestante.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}`, 'success');
+            }
+
+            render();
+        }
+
+        function closePaymentModal() { 
+            document.getElementById('paymentModal').classList.remove('active'); 
+        }
+
+        async function toggleStatus(id) {
+            let history = await getHistory();
+            const index = history.findIndex(h => h.id === id);
+            if (index === -1) return;
+
+            history[index].status = history[index].status === 'Concluído' ? 'A Concluir' : 'Concluído';
+            await DJ_BROWW.safeSet('dj_brow_contracts_history', history);
+
+            const newStatus = history[index].status;
+            DJ_BROWW.toast(`Status alterado para: ${newStatus}`, newStatus === 'Concluído' ? 'success' : 'info');
+            render();
+        }
+
+        function openEditModal(id) {
+            currentItem = allItems.find(h => h.id === id);
+            if (!currentItem) return;
+
+            const valor = parseFloat(currentItem.valor) || 0;
+            const pago = parseFloat(currentItem.pago) || 0;
+            const saldo = valor - pago;
+
+            // Sugerir valor baseado no saldo
+            document.getElementById('editReceiptValue').value = saldo > 0 ? saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+
+            // Selecionar referência apropriada
+            const select = document.getElementById('editReceiptRef');
+            if (pago === 0) {
+                select.value = 'Sinal de Reserva (20%)';
+            } else if (saldo <= 0) {
+                select.value = 'Quitação Total';
+            } else {
+                select.value = 'Pagamento Parcial';
+            }
+
+            document.getElementById('receiptEditModal').classList.add('active');
+        }
+
+        function closeEditModal() { 
+            document.getElementById('receiptEditModal').classList.remove('active'); 
+        }
+
+        async function confirmReceipt() {
+            const value = DJ_BROWW.unmaskMoney(document.getElementById('editReceiptValue').value);
+            const ref = document.getElementById('editReceiptRef').value;
+
+            if (value <= 0) {
+                DJ_BROWW.toast('Informe um valor válido!', 'warning');
+                return;
+            }
+
+            const djData = await DJ_BROWW.safeGet('dj_brow_contract_data_v3', {});
+            const djSignature = localStorage.getItem('dj_brow_signature');
+            const receiptNum = DJ_BROWW.getNextReceiptNumber();
+
+            const receiptHtml = `
+                <div style="text-align:center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 25px;">
+                    <h2 style="margin:0; font-size:1.8rem;">RECIBO</h2>
+                    <p style="margin:5px 0; font-weight:bold; font-size:1.1rem;">${DJ_BROWW.escapeHtml(djData.contr_nome_artistico || 'DJ BROW')}</p>
+                    <div class="receipt-number" style="margin-top:10px;">
+                        Nº ${receiptNum}
+                    </div>
+                </div>
+                <p style="font-size:1.1rem; line-height:1.8; text-align:justify;">
+                    Recebi de <strong>${DJ_BROWW.escapeHtml(currentItem.cliente)}</strong> 
+                    a importância de <strong>${value.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</strong>, 
+                    referente a <strong>${DJ_BROWW.escapeHtml(ref)}</strong> dos serviços de DJ para o evento 
+                    de <strong>${DJ_BROWW.escapeHtml(currentItem.tipo || '---')}</strong> 
+                    realizado em <strong>${DJ_BROWW.formatDateBR(currentItem.data)}</strong>.
+                </p>
+                <p style="text-align:right; margin-top:30px; font-size:1rem;">
+                    ${new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'long', year:'numeric'})}
+                </p>
+                <div style="margin-top:50px; text-align:center;">
+                    <div style="border-bottom:1px solid #000; width:280px; margin:0 auto; min-height:60px; display:flex; align-items:center; justify-content:center;">
+                        ${djSignature ? `<img src="${DJ_BROWW.escapeAttr(djSignature)}" style="max-height:60px;">` : ''}
+                    </div>
+                    <p style="margin-top:10px; font-size:0.9rem;">
+                        <strong>${DJ_BROWW.escapeHtml(djData.contr_nome_civil || 'CONTRATADO')}</strong><br>
+                        <span style="font-size:0.8rem; color:#666;">CPF: ${DJ_BROWW.escapeHtml(djData.contr_cpf || '---')}</span>
+                    </p>
+                </div>
+                <div style="margin-top:40px; padding-top:15px; border-top:1px dashed #ccc; font-size:0.7rem; color:#666; text-align:center;">
+                    <p>Documento gerado digitalmente pelo DJ Brow Sistema v4.0</p>
+                    <p>Recibo nº ${receiptNum} — ${new Date().toLocaleString('pt-BR')}</p>
+                </div>
+            `;
+
+            document.getElementById('receiptArea').innerHTML = receiptHtml;
+            closeEditModal();
+            document.getElementById('receiptModal').classList.add('active');
+
+            DJ_BROWW.toast(`Recibo nº ${receiptNum} gerado!`, 'success');
+        }
+
+        function downloadReceipt() {
+            const content = document.getElementById('receiptArea').innerHTML;
+            const fullHtml = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><title>Recibo DJ Brow</title>
+<style>
+body { font-family:'Times New Roman',serif; max-width:600px; margin:0 auto; padding:40px; }
+.receipt-number { border:1px solid #ccc; padding:5px; display:inline-block; font-family:'Courier New',monospace; }
+</style></head><body>${content}</body></html>`;
+
+            const blob = new Blob([fullHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `recibo_${DJ_BROWW.getNextReceiptNumber()}_${new Date().toISOString().split('T')[0]}.html`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function closeReceipt() { 
+            document.getElementById('receiptModal').classList.remove('active'); 
+        }
+
+        async function editEvent(id) {
+            const history = await getHistory();
+            const item = history.find(h => h.id === id);
+            if (!item) return;
+
+            const newName = prompt('Editar nome do cliente:', item.cliente);
+            if (newName !== null && newName.trim() !== '') {
+                item.cliente = newName.trim();
+                await DJ_BROWW.safeSet('dj_brow_contracts_history', history);
+                DJ_BROWW.toast('Cliente atualizado!', 'success');
+                render();
+            }
+        }
+
+        async function deleteItem(id) {
+            DJ_BROWW.confirm('Tem certeza que deseja excluir este registro permanentemente?', async () => {
+                const history = await getHistory();
+                const filtered = history.filter(h => h.id !== id);
+                await DJ_BROWW.safeSet('dj_brow_contracts_history', filtered);
+                DJ_BROWW.toast('Registro excluído', 'info');
+                render();
+            });
+        }
+
+        document.getElementById('searchClient').addEventListener('input', () => {
+            currentPage = 1;
+            render();
+        });
+        document.getElementById('filterMonth').addEventListener('change', () => {
+            currentPage = 1;
+            render();
+        });
+        document.getElementById('filterYear').addEventListener('input', () => {
+            currentPage = 1;
+            render();
+        });
+
+        // Fechar modais ao clicar fora
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal && !modal.id.includes('receiptModal')) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+
+        window.addEventListener('load', render);
+    </script>
+</body>
+</html>

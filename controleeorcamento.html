@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>DJ BROWW - Orçamento v4.0</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <style>
+        .app { max-width: 500px; margin: 0 auto; }
+
+        .nav-top { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        .nav-top a { 
+            color: var(--primary); 
+            text-decoration: none; 
+            font-size: 0.85rem; 
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .total-card { 
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
+            color: #000; 
+            padding: 30px; 
+            border-radius: var(--radius-lg); 
+            text-align: center; 
+            margin-bottom: 25px; 
+            box-shadow: var(--shadow-primary);
+            position: relative;
+            overflow: hidden;
+        }
+        .total-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+        .total-card p { 
+            margin: 0; 
+            font-size: 0.75rem; 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            letter-spacing: 2px;
+            position: relative;
+            z-index: 1;
+        }
+        .total-card h2 { 
+            margin: 10px 0 0 0; 
+            font-size: 2.8rem; 
+            font-weight: 900;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section { 
+            background: var(--card); 
+            border-radius: var(--radius-lg); 
+            padding: 20px; 
+            margin-bottom: 15px; 
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+        .section:hover {
+            border-color: var(--border-light);
+        }
+
+        .group { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 12px; 
+            margin-bottom: 12px; 
+        }
+
+        .btn-box { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-client { background: var(--primary); color: #000; }
+        .btn-report { background: var(--info); color: #000; }
+        .btn-contract { background: #ff6b6b; color: #fff; }
+        .btn-backup { background: #845ef7; color: #fff; }
+        .btn-clear { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
+
+        .event-preview {
+            background: rgba(0,255,136,0.05);
+            border: 1px dashed var(--primary);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .event-preview h4 {
+            color: var(--primary);
+            margin: 0 0 15px 0;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .cost-breakdown {
+            background: #000;
+            border-radius: var(--radius-sm);
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 0.8rem;
+        }
+
+        .cost-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .cost-row:last-child {
+            border-bottom: none;
+            font-weight: 800;
+            color: var(--primary);
+            font-size: 0.9rem;
+            margin-top: 5px;
+            padding-top: 10px;
+            border-top: 2px solid var(--border);
+        }
+
+        @media (max-width: 600px) {
+            .group { grid-template-columns: 1fr; }
+            .total-card h2 { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app">
+    <div class="nav-top">
+        <a href="index.html">← Dashboard</a>
+        <a href="#" onclick="openBackupModal()">💾 Backup</a>
+    </div>
+
+    <div class="total-card">
+        <p>Valor Final ao Cliente</p>
+        <h2 id="totalDisplay">R$ 0,00</h2>
+    </div>
+
+    <!-- Preview de custos -->
+    <div class="cost-breakdown" id="costBreakdown" style="display:none;">
+        <div class="cost-row"><span>⛽ Combustível:</span><span id="costFuel">R$ 0,00</span></div>
+        <div class="cost-row"><span>🚚 Logística:</span><span id="costLogistics">R$ 0,00</span></div>
+        <div class="cost-row"><span>📦 Equipamento:</span><span id="costEquip">R$ 0,00</span></div>
+        <div class="cost-row"><span>👥 Equipe:</span><span id="costTeam">R$ 0,00</span></div>
+        <div class="cost-row"><span>🎧 Seu Cachet:</span><span id="costDJ">R$ 0,00</span></div>
+        <div class="cost-row"><span>💰 TOTAL:</span><span id="costTotal">R$ 0,00</span></div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🚚 LOGÍSTICA</div>
+        <div class="group">
+            <div>
+                <label>KM Total</label>
+                <input type="number" id="km" placeholder="0" oninput="calculate()" min="0">
+            </div>
+            <div>
+                <label>Preço Litro R$</label>
+                <input type="text" id="gas" placeholder="0,00" oninput="maskMoneyInput(this); calculate()">
+            </div>
+        </div>
+        <div class="group">
+            <div>
+                <label>Média (KM/L)</label>
+                <input type="number" id="media" placeholder="Padrão: 10" oninput="calculate()" min="1" value="10">
+            </div>
+            <div>
+                <label>Pedágios R$</label>
+                <input type="text" id="toll" placeholder="0,00" oninput="maskMoneyInput(this); calculate()">
+            </div>
+        </div>
+        <label>Serviço de Carreto R$</label>
+        <input type="text" id="freight" placeholder="0,00" oninput="maskMoneyInput(this); calculate()">
+    </div>
+
+    <div class="section">
+        <div class="section-title">📦 ESTRUTURA E EQUIPAMENTO</div>
+        <div class="group">
+            <div>
+                <label>Meu Equipamento R$</label>
+                <input type="text" id="equip_own" placeholder="Lucro seu" oninput="maskMoneyInput(this); calculate()">
+            </div>
+            <div>
+                <label>Aluguel Terceiros R$</label>
+                <input type="text" id="equip_third" placeholder="Custo extra" oninput="maskMoneyInput(this); calculate()">
+            </div>
+        </div>
+        <label>Reserva Manutenção R$</label>
+        <input type="text" id="maint" placeholder="0,00" oninput="maskMoneyInput(this); calculate()">
+    </div>
+
+    <div class="section">
+        <div class="section-title">🎧 DJ E EQUIPE</div>
+        <div class="group">
+            <div>
+                <label>Horas de Som</label>
+                <input type="number" id="hours" placeholder="0" oninput="calculate()" min="0" step="0.5">
+            </div>
+            <div>
+                <label>Valor/Hora R$</label>
+                <input type="text" id="rate" placeholder="0,00" oninput="maskMoneyInput(this); calculate()">
+            </div>
+        </div>
+        <div class="group">
+            <div>
+                <label>Ajudante R$</label>
+                <input type="text" id="staff" placeholder="0,00" oninput="maskMoneyInput(this); calculate()">
+            </div>
+            <div>
+                <label>Alimentação R$</label>
+                <input type="text" id="extra" placeholder="0,00" oninput="maskMoneyInput(this); calculate()">
+            </div>
+        </div>
+    </div>
+
+    <!-- Dados do Evento para envio ao contrato -->
+    <div class="section card-highlight">
+        <div class="section-title">📋 DADOS DO EVENTO (Opcional)</div>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:15px;">
+            Preencha para enviar diretamente ao contrato
+        </p>
+        <div class="form-group">
+            <label>Nome do Cliente</label>
+            <input type="text" id="preview_cliente" placeholder="Nome completo">
+        </div>
+        <div class="grid">
+            <div class="form-group">
+                <label>CPF/CNPJ</label>
+                <input type="text" id="preview_cpf" placeholder="000.000.000-00" maxlength="18">
+            </div>
+            <div class="form-group">
+                <label>Telefone</label>
+                <input type="text" id="preview_tel" placeholder="(00) 00000-0000" maxlength="15">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Tipo de Evento</label>
+            <select id="preview_tipo">
+                <option value="">Selecione...</option>
+                <option value="Casamento">Casamento</option>
+                <option value="Aniversário">Aniversário</option>
+                <option value="Formatura">Formatura</option>
+                <option value="Corporativo">Corporativo</option>
+                <option value="Outro">Outro</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Local do Evento</label>
+            <input type="text" id="preview_local" placeholder="Endereço do evento">
+        </div>
+        <div class="grid">
+            <div class="form-group">
+                <label>Data</label>
+                <input type="date" id="preview_data">
+            </div>
+            <div class="form-group">
+                <label>Início</label>
+                <input type="time" id="preview_inicio">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Término</label>
+            <input type="time" id="preview_termino">
+        </div>
+    </div>
+
+    <div class="btn-box">
+        <button class="btn btn-client btn-block" onclick="copyClient()">📱 Copiar p/ WhatsApp</button>
+        <button class="btn btn-report btn-block" onclick="copyReport()">📊 Relatório Interno</button>
+        <button class="btn btn-contract btn-block" onclick="sendToContract()">🚀 Ir para Contrato</button>
+        <button class="btn btn-backup btn-block" onclick="exportBackup()">💾 Exportar Backup</button>
+        <button class="btn btn-clear btn-block" onclick="resetApp()">🗑️ Limpar Tudo</button>
+    </div>
+</div>
+
+<!-- Modal de Backup -->
+<div id="backupModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>💾 Gerenciar Backup</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">
+            Cole aqui um backup anterior para restaurar seus dados:
+        </p>
+        <textarea id="backupText" placeholder="Cole o JSON do backup aqui..."></textarea>
+        <div class="modal-buttons">
+            <button class="btn btn-backup" onclick="importBackup()">Restaurar</button>
+            <button class="btn btn-outline" onclick="closeBackupModal()">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<script src="util.js"></script>
+<script>
+    const STORAGE_KEY = 'dj_brow_orcamento_data_v4';
+
+    function getVal(id) { 
+        const el = document.getElementById(id);
+        if (!el) return 0;
+        const val = el.value.replace(/\./g, '').replace(',', '.');
+        return parseFloat(val) || 0; 
+    }
+
+    function maskMoneyInput(input) {
+        let value = input.value.replace(/\D/g, '');
+        if (value) {
+            const num = parseInt(value) / 100;
+            input.value = num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        } else {
+            input.value = '';
+        }
+    }
+
+    function calculate() {
+        const km = getVal('km');
+        const gasP = getVal('gas');
+        const med = getVal('media') || 10;
+        const fuelCost = (km / med) * gasP;
+
+        const costs = getVal('toll') + getVal('freight') + getVal('equip_third') + getVal('staff') + getVal('extra') + getVal('maint');
+        const profitParts = getVal('equip_own') + (getVal('hours') * getVal('rate'));
+
+        const total = fuelCost + costs + profitParts;
+
+        document.getElementById('totalDisplay').innerText = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        // Atualizar breakdown
+        const breakdown = document.getElementById('costBreakdown');
+        if (total > 0) {
+            breakdown.style.display = 'block';
+            document.getElementById('costFuel').innerText = fuelCost.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('costLogistics').innerText = (getVal('toll') + getVal('freight')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('costEquip').innerText = (getVal('equip_third') + getVal('maint')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('costTeam').innerText = (getVal('staff') + getVal('extra')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('costDJ').innerText = (getVal('equip_own') + (getVal('hours') * getVal('rate'))).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('costTotal').innerText = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        } else {
+            breakdown.style.display = 'none';
+        }
+
+        saveData();
+        return { total, fuelCost, costs, profitParts };
+    }
+
+    function copyReport() {
+        const d = calculate();
+        const report = `📊 RELATÓRIO INTERNO DJ BROWW
+━━━━━━━━━━━━━━━━━━━━━━
+⛽ Combustível: ${d.fuelCost.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
+🚚 Carreto: ${getVal('freight').toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
+🛣️ Pedágios: ${getVal('toll').toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
+📦 Aluguel Terceiros: ${getVal('equip_third').toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
+👥 Equipe/Ajudante: ${getVal('staff').toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
+🍽️ Alimentação: ${getVal('extra').toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
+🛠️ Manutenção: ${getVal('maint').toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
+━━━━━━━━━━━━━━━━━━━━━━
+🎧 Meu Cachet (DJ): ${(getVal('hours') * getVal('rate')).toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
+📦 Uso Equip. Próprio: ${getVal('equip_own').toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
+━━━━━━━━━━━━━━━━━━━━━━
+💰 TOTAL A COBRAR: ${document.getElementById('totalDisplay').innerText}
+✅ SEU LUCRO REAL: ${d.profitParts.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
+📉 CUSTOS TOTAIS: ${(d.fuelCost + d.costs).toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}`;
+
+        navigator.clipboard.writeText(report).then(() => {
+            DJ_BROWW.toast('Relatório copiado para a área de transferência!', 'success');
+        });
+    }
+
+    function copyClient() {
+        const total = document.getElementById('totalDisplay').innerText;
+        const msg = `*ORÇAMENTO DJ BROWW* 🎧
+
+✅ *Serviço:* DJ Profissional Completo
+🚚 *Logística & Montagem:* Inclusas
+🎶 *Equipamento de Qualidade:* Incluso
+
+💰 *INVESTIMENTO:* ${total}
+
+_Válido por 5 dias._
+_Para reservar a data, sinal de 20%._
+
+*Entre em contato para mais informações!* 👇`;
+
+        navigator.clipboard.writeText(msg).then(() => {
+            DJ_BROWW.toast('Mensagem copiada! Cole no WhatsApp', 'success');
+        });
+    }
+
+    function sendToContract() {
+        const d = calculate();
+        if (d.total === 0) {
+            DJ_BROWW.toast('Preencha pelo menos um valor!', 'warning');
+            return;
+        }
+
+        const valorFinal = d.total.toFixed(2);
+
+        // Salvar dados do orçamento
+        localStorage.setItem('dj_brow_orcamento_valor', valorFinal);
+        localStorage.setItem('dj_brow_orcamento_completo', JSON.stringify({
+            km: getVal('km'),
+            gas: getVal('gas'),
+            media: getVal('media'),
+            toll: getVal('toll'),
+            freight: getVal('freight'),
+            equip_own: getVal('equip_own'),
+            equip_third: getVal('equip_third'),
+            maint: getVal('maint'),
+            hours: getVal('hours'),
+            rate: getVal('rate'),
+            staff: getVal('staff'),
+            extra: getVal('extra'),
+            total: d.total
+        }));
+
+        // Coletar dados do evento se preenchidos
+        const eventData = {};
+        ['preview_cliente', 'preview_cpf', 'preview_tel', 'preview_tipo', 'preview_local', 'preview_data', 'preview_inicio', 'preview_termino'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el && el.value.trim()) {
+                eventData[id.replace('preview_', '')] = el.value.trim();
+            }
+        });
+
+        if (Object.keys(eventData).length > 0) {
+            localStorage.setItem('dj_brow_orcamento_evento', JSON.stringify(eventData));
+        }
+
+        DJ_BROWW.toast('Dados carregados! Redirecionando...', 'success');
+        setTimeout(() => {
+            window.location.href = 'dj_contract_juridico_atualizado.html';
+        }, 1000);
+    }
+
+    function saveData() {
+        const data = {};
+        ['km', 'media', 'preview_cliente', 'preview_cpf', 'preview_tel', 'preview_tipo', 'preview_local', 'preview_data', 'preview_inicio', 'preview_termino'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) data[id] = el.value;
+        });
+        // Salvar valores monetários já formatados
+        ['gas', 'toll', 'freight', 'equip_own', 'equip_third', 'maint', 'hours', 'rate', 'staff', 'extra'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) data[id] = el.value;
+        });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function loadData() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            const data = JSON.parse(saved);
+            Object.keys(data).forEach(id => {
+                if (document.getElementById(id)) {
+                    document.getElementById(id).value = data[id];
+                }
+            });
+            calculate();
+        }
+    }
+
+    function exportBackup() {
+        const data = {
+            version: '4.0',
+            timestamp: new Date().toLocaleString('pt-BR'),
+            orcamento: JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'),
+            historico: JSON.parse(localStorage.getItem('dj_brow_contracts_history') || '[]'),
+            contrato: JSON.parse(localStorage.getItem('dj_brow_contract_data_v3') || '{}')
+        };
+        const json = JSON.stringify(data, null, 2);
+        navigator.clipboard.writeText(json).then(() => {
+            DJ_BROWW.toast('Backup copiado! Cole em um lugar seguro.', 'success', 5000);
+        });
+    }
+
+    function openBackupModal() {
+        document.getElementById('backupModal').classList.add('active');
+    }
+
+    function closeBackupModal() {
+        document.getElementById('backupModal').classList.remove('active');
+    }
+
+    function importBackup() {
+        const text = document.getElementById('backupText').value;
+        try {
+            const data = JSON.parse(text);
+            if (data.orcamento) {
+                Object.keys(data.orcamento).forEach(id => {
+                    if (document.getElementById(id)) {
+                        document.getElementById(id).value = data.orcamento[id];
+                    }
+                });
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data.orcamento));
+            }
+            if (data.historico) {
+                localStorage.setItem('dj_brow_contracts_history', JSON.stringify(data.historico));
+            }
+            if (data.contrato) {
+                localStorage.setItem('dj_brow_contract_data_v3', JSON.stringify(data.contrato));
+            }
+            DJ_BROWW.toast('Backup restaurado com sucesso!', 'success');
+            calculate();
+            closeBackupModal();
+        } catch (e) {
+            DJ_BROWW.toast('Erro ao restaurar backup. Verifique o formato.', 'error');
+        }
+    }
+
+    function resetApp() { 
+        DJ_BROWW.confirm('Tem certeza que deseja limpar todos os campos?', () => {
+            document.querySelectorAll('input').forEach(i => i.value = '');
+            document.getElementById('media').value = '10';
+            calculate();
+            DJ_BROWW.toast('Campos limpos!', 'info');
+        });
+    }
+
+    // Máscaras para inputs de preview
+    document.getElementById('preview_cpf').addEventListener('input', function(e) {
+        const val = e.target.value.replace(/\D/g, '');
+        if (val.length > 11) {
+            e.target.value = DJ_BROWW.maskCNPJ(val);
+        } else {
+            e.target.value = DJ_BROWW.maskCPF(val);
+        }
+    });
+
+    document.getElementById('preview_tel').addEventListener('input', function(e) {
+        e.target.value = DJ_BROWW.maskPhone(e.target.value);
+    });
+
+    window.addEventListener('load', loadData);
+</script>
+</body>
+</html>
