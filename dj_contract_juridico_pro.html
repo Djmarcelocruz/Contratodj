@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DJ Brow — Contrato PRO com Automações</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0b76d1;
+            --primary-dark: #0056b3;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+            --bg: #f0f2f5;
+            --card: #ffffff;
+            --text: #2d3436;
+            --border: #dfe6e9;
+            --radius: 10px;
+        }
+
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 20px; line-height: 1.5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        .card { background: var(--card); padding: 25px; border-radius: var(--radius); box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        header { text-align: center; margin-bottom: 30px; }
+        h1 { color: var(--primary); margin: 0; font-size: 26px; }
+        h2 { color: var(--primary); font-size: 20px; margin-top: 0; }
+        .badge { font-size: 12px; vertical-align: middle; background: #d4edda; padding: 4px 8px; border-radius: 4px; margin-left: 8px; color: #155724; font-weight: 700; }
+        
+        .section-title { font-size: 18px; font-weight: 700; margin: 20px 0 15px; padding-bottom: 8px; border-bottom: 2px solid var(--primary); }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #636e72; }
+        input, textarea, select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; transition: 0.2s; }
+        input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(11, 118, 209, 0.1); }
+        
+        .btn { padding: 12px 24px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 15px; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-warning { background: var(--warning); color: #333; }
+        .btn-info { background: var(--info); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: #636e72; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Canvas para assinatura */
+        #signaturePad { 
+            border: 2px solid #ddd; 
+            border-radius: 4px; 
+            background: white; 
+            cursor: crosshair;
+            display: block;
+            touch-action: none;
+        }
+
+        /* Editor Area */
+        #editorContainer { display: none; margin-top: 30px; }
+        #contractEditor { 
+            width: 100%; 
+            min-height: 1200px; 
+            padding: 50px; 
+            border: 1px solid #ccc; 
+            background: white; 
+            font-family: 'Times New Roman', Times, serif; 
+            font-size: 11pt; 
+            line-height: 1.7; 
+            outline: none;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .editor-toolbar { background: #f8f9fa; padding: 10px; border: 1px solid #ccc; border-bottom: none; display: flex; gap: 10px; border-radius: 8px 8px 0 0; flex-wrap: wrap; }
+        .editor-toolbar button { padding: 8px 12px; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 4px; font-size: 13px; }
+        .editor-toolbar button:hover { background: #e9ecef; }
+
+        .alert { padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; }
+        .alert-info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        .alert-danger { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+
+        .radio-group { display: flex; gap: 20px; margin: 15px 0; flex-wrap: wrap; }
+        .radio-item { display: flex; align-items: center; gap: 8px; }
+        .radio-item input { width: auto; margin: 0; }
+
+        .contract-preview-info { background: #e7f3ff; padding: 12px; border-left: 4px solid var(--primary); margin-bottom: 15px; border-radius: 4px; font-size: 13px; }
+
+        .subsection { background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 15px; border-left: 3px solid var(--primary); }
+
+        .info-box { background: #fff3cd; padding: 12px; border-left: 4px solid var(--warning); margin-bottom: 15px; border-radius: 4px; font-size: 13px; color: #856404; }
+
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--border); }
+        .tab-btn { padding: 12px 20px; background: none; border: none; cursor: pointer; font-weight: 600; color: #636e72; border-bottom: 3px solid transparent; transition: 0.2s; }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Modal */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
+        .modal.show { display: flex; align-items: center; justify-content: center; }
+        .modal-content { background-color: #fefefe; padding: 20px; border-radius: 8px; width: 90%; max-width: 600px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; }
+
+        /* Histórico */
+        .history-list { max-height: 400px; overflow-y: auto; }
+        .history-item { padding: 12px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
+        .history-item:hover { background: #f8f9fa; border-color: var(--primary); }
+        .history-item-date { font-size: 12px; color: #636e72; }
+        .history-item-title { font-weight: 600; margin: 5px 0; }
+        .history-item-info { font-size: 13px; color: #636e72; }
+
+        /* Dashboard */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 20px; border-radius: 8px; }
+        .stat-value { font-size: 28px; font-weight: 700; }
+        .stat-label { font-size: 13px; opacity: 0.9; margin-top: 5px; }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .card, header, .editor-toolbar, .btn-group, .alert, .radio-group, .contract-preview-info, .tabs, .tab-btn { display: none !important; }
+            #editorContainer { display: block !important; margin: 0; }
+            #contractEditor { border: none; box-shadow: none; padding: 0; }
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 12px; line-height: 1.6; }
+            .container { max-width: 100%; }
+            .card { padding: 16px; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+            
+            header { margin-bottom: 20px; }
+            h1 { font-size: 20px; margin: 0 0 8px 0; }
+            header p { font-size: 13px; }
+            .badge { font-size: 11px; margin-left: 6px; padding: 3px 6px; }
+            
+            .section-title { font-size: 16px; font-weight: 700; margin: 16px 0 12px; padding-bottom: 6px; border-bottom: 2px solid var(--primary); }
+            
+            .grid { grid-template-columns: 1fr; gap: 12px; margin-bottom: 12px; }
+            .grid-3 { grid-template-columns: 1fr; }
+            
+            .form-group { margin-bottom: 12px; }
+            label { font-size: 12px; font-weight: 600; margin-bottom: 4px; display: block; }
+            input, textarea, select { width: 100%; padding: 11px; font-size: 16px; border-radius: 6px; border: 1px solid var(--border); }
+            input:focus, textarea:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(11, 118, 209, 0.1); }
+            
+            .btn { padding: 11px 16px; font-size: 14px; border-radius: 6px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+            .btn-group { flex-direction: column; gap: 8px; }
+            
+            .radio-group { flex-direction: column; gap: 12px; margin: 12px 0; }
+            .radio-item { gap: 10px; padding: 8px; border-radius: 6px; background: #f8f9fa; }
+            
+            .alert { padding: 12px; font-size: 13px; margin-bottom: 16px; border-radius: 6px; }
+            .info-box { padding: 10px; font-size: 12px; margin-bottom: 12px; border-radius: 4px; }
+            .subsection { padding: 12px; margin-bottom: 12px; border-radius: 6px; }
+            .subsection p { font-size: 12px; margin: 0 0 8px 0; }
+            
+            #signaturePad { width: 100%; height: 120px; border: 2px solid #ddd; border-radius: 6px; }
+            
+            #editorContainer { margin-top: 16px; }
+            #contractEditor { padding: 16px; font-size: 10pt; line-height: 1.6; min-height: auto; }
+            .editor-toolbar { padding: 8px; flex-wrap: wrap; gap: 8px; }
+            .editor-toolbar button { font-size: 12px; padding: 8px 12px; }
+            
+            .contract-preview-info { padding: 10px; font-size: 12px; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .tabs { flex-wrap: wrap; }
+            .tab-btn { padding: 10px 15px; font-size: 13px; }
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 8px; }
+            .card { padding: 12px; margin-bottom: 12px; }
+            
+            h1 { font-size: 18px; }
+            .badge { font-size: 10px; }
+            
+            .section-title { font-size: 15px; margin: 14px 0 10px; }
+            
+            label { font-size: 11px; }
+            input, textarea, select { padding: 10px; font-size: 16px; }
+            
+            .btn { padding: 10px 12px; font-size: 13px; min-height: 40px; }
+            
+            .radio-item { padding: 6px; }
+            
+            #signaturePad { height: 100px; }
+            
+            #contractEditor { padding: 12px; font-size: 9pt; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 DJ Brow <span class="badge">PRO</span></h1>
+            <p>Contrato Juridicamente Blindado com Automações Inteligentes</p>
+        </header>
+
+        <!-- TABS -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('form')">📋 Novo Contrato</button>
+            <button class="tab-btn" onclick="switchTab('history')">📜 Histórico</button>
+            <button class="tab-btn" onclick="switchTab('dashboard')">📊 Dashboard</button>
+            <button class="tab-btn" onclick="switchTab('templates')">📁 Templates</button>
+        </div>
+
+        <!-- TAB: NOVO CONTRATO -->
+        <div id="tab-form" class="tab-content active">
+            <div class="card">
+                <h2>1. Dados do DJ (Contratado)</h2>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="contr_nome_civil">Nome Civil *</label>
+                        <input type="text" id="contr_nome_civil" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contr_nome_artistico">Nome Artístico *</label>
+                        <input type="text" id="contr_nome_artistico" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contr_cpf">CPF *</label>
+                        <input type="text" id="contr_cpf" placeholder="000.000.000-00" required>
+                    </div>
+                </div>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="contr_rg">RG *</label>
+                        <input type="text" id="contr_rg" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contr_tel">Telefone *</label>
+                        <input type="tel" id="contr_tel" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contr_email">E-mail *</label>
+                        <input type="email" id="contr_email" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="contr_cep">CEP para Busca *</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="contr_cep" placeholder="00000-000" style="flex: 1;" required>
+                        <button class="btn btn-outline" onclick="buscarCEPDJ()">🔍 Buscar</button>
+                    </div>
+                </div>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="contr_end">Endereço *</label>
+                        <input type="text" id="contr_end" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contr_cidade">Cidade *</label>
+                        <input type="text" id="contr_cidade" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contr_uf">UF *</label>
+                        <input type="text" id="contr_uf" maxlength="2" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>2. Dados do Contratante (Cliente)</h2>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="cli_nome">Nome Completo *</label>
+                        <input type="text" id="cli_nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cli_cpf">CPF/CNPJ *</label>
+                        <input type="text" id="cli_cpf" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cli_rg">RG (opcional)</label>
+                        <input type="text" id="cli_rg">
+                    </div>
+                </div>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="cli_tel">Telefone *</label>
+                        <input type="tel" id="cli_tel" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cli_email">E-mail *</label>
+                        <input type="email" id="cli_email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cli_cep">CEP para Busca *</label>
+                        <input type="text" id="cli_cep" placeholder="00000-000" required>
+                    </div>
+                </div>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="cli_end">Endereço *</label>
+                        <input type="text" id="cli_end" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cli_cidade">Cidade *</label>
+                        <input type="text" id="cli_cidade" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cli_uf">UF *</label>
+                        <input type="text" id="cli_uf" maxlength="2" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>3. Dados do Evento</h2>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="evt_tipo">Tipo de Evento *</label>
+                        <select id="evt_tipo" required onchange="atualizarPreco()">
+                            <option value="">Selecione...</option>
+                            <option value="Casamento">Casamento</option>
+                            <option value="Aniversário">Aniversário</option>
+                            <option value="Corporativo">Corporativo</option>
+                            <option value="Show">Show</option>
+                            <option value="Festa">Festa</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="evt_data">Data do Evento *</label>
+                        <input type="date" id="evt_data" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="evt_local">Local do Evento *</label>
+                        <input type="text" id="evt_local" required>
+                    </div>
+                </div>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="evt_inicio">Início *</label>
+                        <input type="time" id="evt_inicio" required onchange="calcularDuracao()">
+                    </div>
+                    <div class="form-group">
+                        <label for="evt_termino">Término *</label>
+                        <input type="time" id="evt_termino" required onchange="calcularDuracao()">
+                    </div>
+                    <div class="form-group">
+                        <label for="evt_duracao">Duração do Evento (horas)</label>
+                        <input type="text" id="evt_duracao" readonly style="background: #f8f9fa;">
+                    </div>
+                </div>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="evt_tipo_local">Tipo de Local *</label>
+                        <select id="evt_tipo_local" required>
+                            <option value="">Selecione...</option>
+                            <option value="Salão">Salão</option>
+                            <option value="Chácara">Chácara</option>
+                            <option value="Clube">Clube</option>
+                            <option value="Residência">Residência</option>
+                            <option value="Ao ar livre">Ao ar livre</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="evt_distancia_tomada">Distância da Tomada (metros) *</label>
+                        <input type="number" id="evt_distancia_tomada" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="evt_equipamentos">Equipamentos Inclusos *</label>
+                        <select id="evt_equipamentos" required>
+                            <option value="">Selecione...</option>
+                            <option value="Som básico">Som básico</option>
+                            <option value="Som + Iluminação">Som + Iluminação</option>
+                            <option value="Som + Iluminação + Efeitos">Som + Iluminação + Efeitos</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>4. Valores e Pagamento</h2>
+                <div class="info-box">
+                    💡 <strong>Cálculo Automático:</strong> O valor sugerido é calculado automaticamente baseado no tipo de evento e duração. Você pode ajustar conforme necessário.
+                </div>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="evt_valor">Valor Total (R$) *</label>
+                        <input type="number" id="evt_valor" min="0" step="0.01" required onchange="calcularSinal()">
+                    </div>
+                    <div class="form-group">
+                        <label for="evt_sinal_percentual">% do Sinal *</label>
+                        <input type="number" id="evt_sinal_percentual" value="20" min="0" max="100" required onchange="calcularSinal()">
+                    </div>
+                    <div class="form-group">
+                        <label for="evt_sinal_valor">Valor do Sinal (R$)</label>
+                        <input type="number" id="evt_sinal_valor" readonly style="background: #f8f9fa;">
+                    </div>
+                </div>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="evt_valor_extra">Valor Hora Extra (R$) *</label>
+                        <input type="number" id="evt_valor_extra" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="evt_pagamento">Forma de Pagamento *</label>
+                        <select id="evt_pagamento" required>
+                            <option value="">Selecione...</option>
+                            <option value="Dinheiro">Dinheiro</option>
+                            <option value="Transferência">Transferência</option>
+                            <option value="Pix">Pix</option>
+                            <option value="Cartão">Cartão</option>
+                            <option value="Cheque">Cheque</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="evt_foro">Foro (Cidade) *</label>
+                        <input type="text" id="evt_foro" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>5. Assinatura Digital (DJ)</h2>
+                <p style="font-size: 13px; color: #636e72; margin-bottom: 15px;">Desenhe sua assinatura no canvas abaixo. Ela será incluída automaticamente em todos os contratos gerados.</p>
+                <canvas id="signaturePad" width="800" height="200" style="border: 2px solid #ddd; border-radius: 4px; background: white;"></canvas>
+                <div class="btn-group" style="margin-top: 10px;">
+                    <button class="btn btn-outline" onclick="limparAssinatura()">🗑️ Limpar</button>
+                    <button class="btn btn-success" onclick="salvarAssinatura()">✓ Salvar Assinatura</button>
+                </div>
+                <div id="assinatura-status" style="margin-top: 10px; font-size: 13px;"></div>
+            </div>
+
+            <div class="card">
+                <h2>6. Testemunhas (Opcional)</h2>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="test1_nome">Nome da 1ª Testemunha</label>
+                        <input type="text" id="test1_nome">
+                    </div>
+                    <div class="form-group">
+                        <label for="test1_cpf">CPF da 1ª Testemunha</label>
+                        <input type="text" id="test1_cpf">
+                    </div>
+                    <div></div>
+                </div>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="test2_nome">Nome da 2ª Testemunha</label>
+                        <input type="text" id="test2_nome">
+                    </div>
+                    <div class="form-group">
+                        <label for="test2_cpf">CPF da 2ª Testemunha</label>
+                        <input type="text" id="test2_cpf">
+                    </div>
+                    <div></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>7. Assinatura do Contrato</h2>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="ass_local">Local da Assinatura *</label>
+                        <input type="text" id="ass_local" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ass_data">Data da Assinatura *</label>
+                        <input type="date" id="ass_data" required>
+                    </div>
+                    <button class="btn btn-outline" onclick="preencherDataAtual()" style="align-self: flex-end;">📅 Hoje</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="visualizarContrato()">👁️ Visualizar Contrato</button>
+                    <button class="btn btn-success" onclick="gerarPDF()">📥 Gerar PDF</button>
+                    <button class="btn btn-info" onclick="exportarWord()">📄 Exportar Word</button>
+                    <button class="btn btn-warning" onclick="enviarWhatsApp()">💬 Enviar WhatsApp</button>
+                    <button class="btn btn-outline" onclick="salvarTemplate()">💾 Salvar como Template</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: HISTÓRICO -->
+        <div id="tab-history" class="tab-content">
+            <div class="card">
+                <h2>📜 Histórico de Contratos</h2>
+                <div class="history-list" id="historico-list">
+                    <p style="text-align: center; color: #636e72;">Nenhum contrato gerado ainda.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: DASHBOARD -->
+        <div id="tab-dashboard" class="tab-content">
+            <div class="card">
+                <h2>📊 Dashboard Financeiro</h2>
+                <div class="stats-grid" id="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-total">R$ 0,00</div>
+                        <div class="stat-label">Total Faturado</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, var(--success), #20c997);">
+                        <div class="stat-value" id="stat-eventos">0</div>
+                        <div class="stat-label">Total de Eventos</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, var(--info), #0dcaf0);">
+                        <div class="stat-value" id="stat-media">R$ 0,00</div>
+                        <div class="stat-label">Média por Evento</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, var(--warning), #ffc720);">
+                        <div class="stat-value" id="stat-sinal">R$ 0,00</div>
+                        <div class="stat-label">Total em Sinais</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: TEMPLATES -->
+        <div id="tab-templates" class="tab-content">
+            <div class="card">
+                <h2>📁 Meus Templates</h2>
+                <div id="templates-list">
+                    <p style="text-align: center; color: #636e72;">Nenhum template salvo ainda.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- EDITOR -->
+        <div id="editorContainer">
+            <div class="editor-toolbar">
+                <button onclick="document.getElementById('contractEditor').contentEditable = !document.getElementById('contractEditor').contentEditable; alert('Modo edição: ' + (document.getElementById('contractEditor').contentEditable ? 'ATIVADO' : 'DESATIVADO'))">✏️ Editar</button>
+                <button onclick="window.print()">🖨️ Imprimir</button>
+                <button onclick="fecharEditor()">✕ Fechar</button>
+                <span style="margin-left: auto; padding: 8px; font-size: 12px; color: #636e72;">Dica: Use Ctrl+P para imprimir diretamente</span>
+            </div>
+            <div id="contractEditor" contenteditable="false"></div>
+        </div>
+    </div>
+
+    <script>
+        // ===== CONFIGURAÇÃO INICIAL =====
+        const form = document.querySelector('form') || document.body;
+        let assinaturaSalva = localStorage.getItem('dj_brow_signature');
+        let contratos = JSON.parse(localStorage.getItem('dj_brow_contratos')) || [];
+        let templates = JSON.parse(localStorage.getItem('dj_brow_templates')) || [];
+
+        // Canvas Signature
+        const canvas = document.getElementById('signaturePad');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            ctx.stroke();
+        });
+
+        canvas.addEventListener('mouseup', () => isDrawing = false);
+        canvas.addEventListener('mouseout', () => isDrawing = false);
+
+        // Touch support
+        canvas.addEventListener('touchstart', (e) => {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            ctx.beginPath();
+            ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+            ctx.stroke();
+        });
+
+        canvas.addEventListener('touchend', () => isDrawing = false);
+
+        // ===== FUNÇÕES DE ASSINATURA =====
+        function limparAssinatura() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('assinatura-status').innerHTML = '';
+        }
+
+        function salvarAssinatura() {
+            if (canvas.toDataURL() === 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==') {
+                alert('⚠️ Por favor, desenhe sua assinatura antes de salvar!');
+                return;
+            }
+            assinaturaSalva = canvas.toDataURL();
+            localStorage.setItem('dj_brow_signature', assinaturaSalva);
+            document.getElementById('assinatura-status').innerHTML = '<span style="color: var(--success); font-weight: 600;">✓ Assinatura salva com sucesso!</span>';
+            setTimeout(() => document.getElementById('assinatura-status').innerHTML = '', 3000);
+        }
+
+        // ===== FUNÇÕES DE BUSCA DE CEP =====
+        function buscarCEPDJ() {
+            const cep = document.getElementById('contr_cep').value.replace(/\D/g, '');
+            if (cep.length !== 8) {
+                alert('CEP inválido! Digite 8 dígitos.');
+                return;
+            }
+            buscarCEP(cep, 'contr');
+        }
+
+        function buscarCEP(cep, prefixo) {
+            fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.erro) {
+                        alert('CEP não encontrado!');
+                        return;
+                    }
+                    document.getElementById(`${prefixo}_end`).value = data.logradouro;
+                    document.getElementById(`${prefixo}_cidade`).value = data.localidade;
+                    document.getElementById(`${prefixo}_uf`).value = data.uf;
+                    saveFormData();
+                })
+                .catch(() => alert('Erro ao buscar CEP. Verifique sua conexão.'));
+        }
+
+        // ===== CÁLCULOS AUTOMÁTICOS =====
+        function calcularDuracao() {
+            const inicio = document.getElementById('evt_inicio').value;
+            const termino = document.getElementById('evt_termino').value;
+            if (!inicio || !termino) return;
+
+            const [h1, m1] = inicio.split(':').map(Number);
+            const [h2, m2] = termino.split(':').map(Number);
+            const minutos = (h2 * 60 + m2) - (h1 * 60 + m1);
+            const horas = Math.floor(minutos / 60);
+            const mins = minutos % 60;
+            const decimal = (minutos / 60).toFixed(2);
+
+            document.getElementById('evt_duracao').value = `${horas}h ${mins}min (${decimal}h)`;
+            atualizarPreco();
+        }
+
+        function calcularSinal() {
+            const valor = parseFloat(document.getElementById('evt_valor').value) || 0;
+            const percentual = parseFloat(document.getElementById('evt_sinal_percentual').value) || 20;
+            const sinal = (valor * percentual / 100).toFixed(2);
+            document.getElementById('evt_sinal_valor').value = sinal;
+        }
+
+        function atualizarPreco() {
+            const tipo = document.getElementById('evt_tipo').value;
+            const duracao = parseFloat(document.getElementById('evt_duracao').value) || 0;
+            
+            const precos = {
+                'Casamento': 1500,
+                'Aniversário': 800,
+                'Corporativo': 1200,
+                'Show': 2000,
+                'Festa': 600,
+                'Outro': 500
+            };
+
+            const precoBase = precos[tipo] || 0;
+            const precoHora = precoBase / 4;
+            const precoTotal = (precoBase + (duracao - 4) * precoHora * 0.5).toFixed(2);
+
+            if (document.getElementById('evt_valor').value === '') {
+                document.getElementById('evt_valor').value = precoTotal;
+                calcularSinal();
+            }
+        }
+
+        // ===== FUNÇÕES DE DATA =====
+        function preencherDataAtual() {
+            const hoje = new Date().toISOString().split('T')[0];
+            document.getElementById('ass_data').value = hoje;
+            document.getElementById('evt_data').value = hoje;
+        }
+
+        // ===== VISUALIZAR CONTRATO =====
+        function visualizarContrato() {
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            if (!assinaturaSalva) {
+                alert('⚠️ ATENÇÃO: Você ainda não salvou sua assinatura!\n\nPor favor:\n1. Desenhe sua assinatura no canvas\n2. Clique em "Salvar Assinatura"\n3. Depois clique em "Visualizar Contrato"');
+                document.getElementById('signaturePad').scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+
+            const val = (id) => document.getElementById(id).value;
+            const dataBR = (d) => {
+                const [ano, mes, dia] = d.split('-');
+                const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                return `${dia} de ${meses[parseInt(mes) - 1]} de ${ano}`;
+            };
+
+            const tipoEvento = val('evt_tipo');
+            let clausulaCobertura = '';
+            let clausulaEnergia = '';
+
+            if (val('evt_tipo_local') === 'Ao ar livre') {
+                clausulaCobertura = `<p><strong>3.1. COBERTURA OBRIGATÓRIA:</strong> O LOCAL deve possuir cobertura (tenda, marquês ou estrutura similar) que proteja os equipamentos de chuva. Caso contrário, o DJ não se responsabiliza por danos aos equipamentos.</p>`;
+            } else {
+                clausulaCobertura = `<p><strong>3.1. LOCAL PROTEGIDO:</strong> O local é protegido de intempéries, garantindo segurança dos equipamentos.</p>`;
+            }
+
+            const distancia = parseInt(val('evt_distancia_tomada')) || 0;
+            if (distancia > 20) {
+                clausulaEnergia = `<p><strong>3.2. EXTENSÃO ELÉTRICA:</strong> A distância da tomada é ${distancia}m. O CONTRATANTE deve providenciar extensão elétrica de qualidade com bitola adequada (mínimo 2.5mm²) e protetor de surto. O DJ não se responsabiliza por danos causados por fiação inadequada.</p>`;
+            } else {
+                clausulaEnergia = `<p><strong>3.2. ENERGIA:</strong> A tomada está a ${distancia}m do local de apresentação. O CONTRATANTE garante fornecimento estável de energia.</p>`;
+            }
+
+            let clausulaEvento = '';
+            if (tipoEvento === 'Casamento') {
+                clausulaEvento = `
+                    <p><strong>5. PROTOCOLO ESPECIAL - CASAMENTO</strong></p>
+                    <p>5.1. Será realizado coquetel musical durante a recepção.</p>
+                    <p>5.2. DJ fará abertura da pista de dança com música selecionada.</p>
+                    <p>5.3. Primeira dança dos noivos será acompanhada de iluminação especial (se contratado).</p>
+                    <p>5.4. Momento da gravata e jarreteira com animação.</p>
+                `;
+            } else if (tipoEvento === 'Corporativo') {
+                clausulaEvento = `
+                    <p><strong>5. PROTOCOLO ESPECIAL - EVENTO CORPORATIVO</strong></p>
+                    <p>5.1. DJ atuará como animador profissional durante o evento.</p>
+                    <p>5.2. Será respeitado rigorosamente o cronograma fornecido pela empresa.</p>
+                    <p>5.3. DJ não fará brincadeiras ou animações não autorizadas.</p>
+                    <p>5.4. Música será selecionada conforme briefing da empresa.</p>
+                `;
+            } else if (tipoEvento === 'Show') {
+                clausulaEvento = `
+                    <p><strong>5. PROTOCOLO ESPECIAL - SHOW</strong></p>
+                    <p>5.1. DJ atuará como artista principal do evento.</p>
+                    <p>5.2. Será utilizado rider técnico profissional.</p>
+                    <p>5.3. Sonorização e iluminação de qualidade profissional.</p>
+                    <p>5.4. Contratante responsável por segurança do palco.</p>
+                `;
+            } else {
+                clausulaEvento = `
+                    <p><strong>5. DISPOSIÇÕES ESPECÍFICAS DO EVENTO</strong></p>
+                    <p>5.1. As partes acordam em manter comunicação clara sobre qualquer alteração de última hora.</p>
+                `;
+            }
+
+            let testemunhasHtml = '';
+            if (val('test1_nome') && val('test2_nome')) {
+                testemunhasHtml = `
+                    <div style="margin-top: 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 50px; text-align: center;">
+                        <div>
+                            <div style="border-top: 1px solid #000; padding-top: 10px; margin-top: 60px;">TESTEMUNHA 1</div>
+                            <div style="font-size: 10pt; margin-top: 5px;">${val('test1_nome')} - CPF: ${val('test1_cpf')}</div>
+                        </div>
+                        <div>
+                            <div style="border-top: 1px solid #000; padding-top: 10px; margin-top: 60px;">TESTEMUNHA 2</div>
+                            <div style="font-size: 10pt; margin-top: 5px;">${val('test2_nome')} - CPF: ${val('test2_cpf')}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const contratoHtml = `
+                <h2 style="text-align:center; margin-bottom: 30px; font-weight: bold;">CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE DJ</h2>
+                
+                <p><strong>1. DAS PARTES</strong></p>
+                <p><strong>CONTRATADO:</strong> ${val('contr_nome_civil')}, nome artístico ${val('contr_nome_artistico')}, inscrito no CPF sob nº ${val('contr_cpf')}, RG nº ${val('contr_rg')}, residente à ${val('contr_end')}, ${val('contr_cidade')} - ${val('contr_uf')}, CEP ${val('contr_cep')}, telefone ${val('contr_tel')}, email ${val('contr_email') || 'não informado'}.</p>
+                <p><strong>CONTRATANTE:</strong> ${val('cli_nome')}, inscrito no CPF/CNPJ sob nº ${val('cli_cpf')}, residente à ${val('cli_end')}, ${val('cli_cidade')} - ${val('cli_uf')}, CEP ${val('cli_cep')}, telefone ${val('cli_tel')}, email ${val('cli_email') || 'não informado'}.</p>
+
+                <p><strong>2. DO OBJETO E ESCOPO DO SERVIÇO</strong></p>
+                <p>O objeto deste contrato é a prestação de serviços profissionais de DJ para ${tipoEvento} a ser realizado no dia ${dataBR(val('evt_data'))}, com início às ${val('evt_inicio')} e término às ${val('evt_termino')}, no local denominado ${val('evt_local')}. Duração prevista: ${val('evt_duracao')}.</p>
+
+                <p><strong>3. DA SEGURANÇA, COBERTURA E INFRAESTRUTURA TÉCNICA</strong></p>
+                ${clausulaCobertura}
+                ${clausulaEnergia}
+                <p><strong>3.3. SEGURANÇA DE CABOS:</strong> Todos os cabos em áreas de circulação de convidados devem ser protegidos com fitas de proteção, canaletas ou cobertura adequada. O CONTRATANTE é responsável por esta proteção.</p>
+
+                <p><strong>4. DOS EQUIPAMENTOS E MONTAGEM</strong></p>
+                <p>4.1. O DJ levará equipamentos profissionais conforme especificado: ${val('evt_equipamentos')}.</p>
+                <p>4.2. Montagem será realizada 30 minutos antes do horário de início.</p>
+                <p>4.3. O CONTRATANTE deve disponibilizar espaço adequado e seguro para os equipamentos.</p>
+
+                ${clausulaEvento}
+
+                <p><strong>6. DO PAGAMENTO E QUITAÇÃO</strong></p>
+                <p>6.1. Valor total do serviço: R$ ${val('evt_valor')}.</p>
+                <p>6.2. Sinal de ${document.getElementById('evt_sinal_percentual').value}%: R$ ${document.getElementById('evt_sinal_valor').value} (obrigatório para confirmar a data).</p>
+                <p>6.3. Saldo: R$ ${(parseFloat(val('evt_valor')) - parseFloat(document.getElementById('evt_sinal_valor').value)).toFixed(2)} (pagável no dia do evento).</p>
+                <p>6.4. Forma de pagamento: ${val('evt_pagamento')}.</p>
+                <p>6.5. Horas extras: R$ ${val('evt_valor_extra')}/hora.</p>
+
+                <p><strong>7. DO CANCELAMENTO E MULTAS RESCISÓRIAS</strong></p>
+                <p>7.1. Cancelamento com 30 dias ou mais: devolução de 80% do sinal.</p>
+                <p>7.2. Cancelamento com 15-29 dias: devolução de 50% do sinal.</p>
+                <p>7.3. Cancelamento com menos de 15 dias: perda total do sinal.</p>
+                <p>7.4. Cancelamento no dia do evento: perda de 100% do valor total.</p>
+
+                <p><strong>8. DE FORÇA MAIOR E RESPONSABILIDADES</strong></p>
+                <p>8.1. Em caso de força maior (chuva, falta de energia, etc.), o DJ se compromete a encontrar solução ou remarcar o evento.</p>
+                <p>8.2. Se o DJ não puder comparecer, será providenciado substituto de qualidade equivalente.</p>
+                <p>8.3. O DJ não se responsabiliza por danos aos equipamentos causados por negligência do CONTRATANTE.</p>
+
+                <p><strong>9. DISPOSIÇÕES FINAIS</strong></p>
+                <p>9.1. Este contrato é válido como Título Executivo Extrajudicial.</p>
+                <p>9.2. Foro competente: ${val('evt_foro')} - ${val('contr_uf')}.</p>
+                <p>9.3. Qualquer alteração deve ser feita por escrito e assinada por ambas as partes.</p>
+
+                <p><strong>10. DA ASSINATURA</strong></p>
+                <p>10.1. O CONTRATADO pode assinar digitalmente via e-mail, WhatsApp ou aplicativos de mensagem.</p>
+                <p>10.2. A assinatura eletrônica do CONTRATADO tem força probatória conforme Lei nº 14.063/2020.</p>
+                <p>10.3. O CONTRATANTE deve assinar em papel (forma manuscrita).</p>
+                <p>10.4. O comprovante de pagamento do sinal constitui confirmação de aceite do contrato.</p>
+
+                <p style="margin-top: 50px;"><strong>LOCAL E DATA:</strong> ${val('ass_local')}, ${dataBR(val('ass_data'))}.</p>
+
+                <div style="margin-top: 80px; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; text-align: center;">
+                    <div style="display: flex; flex-direction: column;">
+                        <div style="flex: 1; min-height: 100px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 15px;">
+                            <!-- Espaço para assinatura do contratante -->
+                        </div>
+                        <div style="border-top: 2px solid #000; padding-top: 8px; font-weight: bold; font-size: 11pt;">CONTRATANTE</div>
+                        <div style="font-size: 10pt; margin-top: 5px;">${val('cli_nome')}</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <div style="flex: 1; min-height: 100px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 15px;">
+                            ${assinaturaSalva ? `<img src="${assinaturaSalva}" style="max-width: 200px; max-height: 80px; display: block; object-fit: contain;">` : ''}
+                        </div>
+                        <div style="border-top: 2px solid #000; padding-top: 8px; font-weight: bold; font-size: 11pt;">CONTRATADO</div>
+                        <div style="font-size: 10pt; margin-top: 5px;">${val('contr_nome_civil')}</div>
+                    </div>
+                </div>
+
+                ${testemunhasHtml}
+            `;
+
+            const editor = document.getElementById('contractEditor');
+            editor.innerHTML = contratoHtml;
+            document.getElementById('editorContainer').style.display = 'block';
+            document.getElementById('editorContainer').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ===== GERAR PDF =====
+        function gerarPDF() {
+            visualizarContrato();
+            setTimeout(() => {
+                window.print();
+                salvarNoHistorico();
+            }, 500);
+        }
+
+        // ===== EXPORTAR WORD =====
+        function exportarWord() {
+            visualizarContrato();
+            setTimeout(() => {
+                const html = document.getElementById('contractEditor').innerHTML;
+                const blob = new Blob([`
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <style>
+                            body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; line-height: 1.7; }
+                            p { margin: 10px 0; }
+                            strong { font-weight: bold; }
+                        </style>
+                    </head>
+                    <body>${html}</body>
+                    </html>
+                `], { type: 'application/msword' });
+                
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Contrato_${document.getElementById('cli_nome').value}_${new Date().toISOString().split('T')[0]}.doc`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }, 500);
+        }
+
+        // ===== ENVIAR WHATSAPP =====
+        function enviarWhatsApp() {
+            const telefone = document.getElementById('cli_tel').value.replace(/\D/g, '');
+            const cliente = document.getElementById('cli_nome').value;
+            const data = document.getElementById('evt_data').value;
+            const local = document.getElementById('evt_local').value;
+            
+            const mensagem = `Olá ${cliente}! Segue em anexo o contrato de DJ para o evento em ${local} no dia ${data}. Por favor, revise e confirme. Obrigado!`;
+            const url = `https://wa.me/55${telefone}?text=${encodeURIComponent(mensagem)}`;
+            window.open(url, '_blank');
+        }
+
+        // ===== SALVAR NO HISTÓRICO =====
+        function salvarNoHistorico() {
+            const contrato = {
+                id: Date.now(),
+                cliente: document.getElementById('cli_nome').value,
+                data: new Date().toLocaleString('pt-BR'),
+                valor: document.getElementById('evt_valor').value,
+                tipo: document.getElementById('evt_tipo').value,
+                dataEvento: document.getElementById('evt_data').value,
+                html: document.getElementById('contractEditor').innerHTML
+            };
+            
+            contratos.unshift(contrato);
+            if (contratos.length > 50) contratos.pop();
+            localStorage.setItem('dj_brow_contratos', JSON.stringify(contratos));
+            atualizarHistorico();
+            atualizarDashboard();
+        }
+
+        // ===== ATUALIZAR HISTÓRICO =====
+        function atualizarHistorico() {
+            const lista = document.getElementById('historico-list');
+            if (contratos.length === 0) {
+                lista.innerHTML = '<p style="text-align: center; color: #636e72;">Nenhum contrato gerado ainda.</p>';
+                return;
+            }
+
+            lista.innerHTML = contratos.map(c => `
+                <div class="history-item" onclick="carregarContrato(${c.id})">
+                    <div class="history-item-date">${c.data}</div>
+                    <div class="history-item-title">${c.cliente}</div>
+                    <div class="history-item-info">${c.tipo} - R$ ${parseFloat(c.valor).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</div>
+                </div>
+            `).join('');
+        }
+
+        // ===== CARREGAR CONTRATO =====
+        function carregarContrato(id) {
+            const contrato = contratos.find(c => c.id === id);
+            if (contrato) {
+                document.getElementById('contractEditor').innerHTML = contrato.html;
+                document.getElementById('editorContainer').style.display = 'block';
+                document.getElementById('editorContainer').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // ===== SALVAR COMO TEMPLATE =====
+        function salvarTemplate() {
+            const nome = prompt('Nome do template:');
+            if (!nome) return;
+
+            const template = {
+                id: Date.now(),
+                nome: nome,
+                contr_nome_civil: document.getElementById('contr_nome_civil').value,
+                contr_nome_artistico: document.getElementById('contr_nome_artistico').value,
+                contr_cpf: document.getElementById('contr_cpf').value,
+                contr_rg: document.getElementById('contr_rg').value,
+                contr_tel: document.getElementById('contr_tel').value,
+                contr_email: document.getElementById('contr_email').value,
+                contr_end: document.getElementById('contr_end').value,
+                contr_cidade: document.getElementById('contr_cidade').value,
+                contr_uf: document.getElementById('contr_uf').value,
+                contr_cep: document.getElementById('contr_cep').value,
+                evt_valor_extra: document.getElementById('evt_valor_extra').value,
+                evt_foro: document.getElementById('evt_foro').value
+            };
+
+            templates.push(template);
+            localStorage.setItem('dj_brow_templates', JSON.stringify(templates));
+            alert('✓ Template salvo com sucesso!');
+            atualizarTemplates();
+        }
+
+        // ===== ATUALIZAR TEMPLATES =====
+        function atualizarTemplates() {
+            const lista = document.getElementById('templates-list');
+            if (templates.length === 0) {
+                lista.innerHTML = '<p style="text-align: center; color: #636e72;">Nenhum template salvo ainda.</p>';
+                return;
+            }
+
+            lista.innerHTML = templates.map(t => `
+                <div class="history-item">
+                    <div class="history-item-title">${t.nome}</div>
+                    <div class="history-item-info">${t.contr_nome_civil} (${t.contr_nome_artistico})</div>
+                    <div class="btn-group" style="margin-top: 10px;">
+                        <button class="btn btn-outline" onclick="carregarTemplate(${t.id})">📂 Carregar</button>
+                        <button class="btn btn-danger" onclick="deletarTemplate(${t.id})">🗑️ Deletar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ===== CARREGAR TEMPLATE =====
+        function carregarTemplate(id) {
+            const template = templates.find(t => t.id === id);
+            if (template) {
+                document.getElementById('contr_nome_civil').value = template.contr_nome_civil;
+                document.getElementById('contr_nome_artistico').value = template.contr_nome_artistico;
+                document.getElementById('contr_cpf').value = template.contr_cpf;
+                document.getElementById('contr_rg').value = template.contr_rg;
+                document.getElementById('contr_tel').value = template.contr_tel;
+                document.getElementById('contr_email').value = template.contr_email;
+                document.getElementById('contr_end').value = template.contr_end;
+                document.getElementById('contr_cidade').value = template.contr_cidade;
+                document.getElementById('contr_uf').value = template.contr_uf;
+                document.getElementById('contr_cep').value = template.contr_cep;
+                document.getElementById('evt_valor_extra').value = template.evt_valor_extra;
+                document.getElementById('evt_foro').value = template.evt_foro;
+                saveFormData();
+                switchTab('form');
+                alert('✓ Template carregado!');
+            }
+        }
+
+        // ===== DELETAR TEMPLATE =====
+        function deletarTemplate(id) {
+            if (confirm('Tem certeza que deseja deletar este template?')) {
+                templates = templates.filter(t => t.id !== id);
+                localStorage.setItem('dj_brow_templates', JSON.stringify(templates));
+                atualizarTemplates();
+            }
+        }
+
+        // ===== ATUALIZAR DASHBOARD =====
+        function atualizarDashboard() {
+            const total = contratos.reduce((sum, c) => sum + parseFloat(c.valor || 0), 0);
+            const media = contratos.length > 0 ? total / contratos.length : 0;
+            const sinal = contratos.reduce((sum, c) => sum + (parseFloat(c.valor || 0) * 0.20), 0);
+
+            document.getElementById('stat-total').textContent = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('stat-eventos').textContent = contratos.length;
+            document.getElementById('stat-media').textContent = `R$ ${media.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('stat-sinal').textContent = `R$ ${sinal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+        }
+
+        // ===== SWITCH TABS =====
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // ===== FECHAR EDITOR =====
+        function fecharEditor() {
+            document.getElementById('editorContainer').style.display = 'none';
+        }
+
+        // ===== SALVAMENTO AUTOMÁTICO =====
+        const STORAGE_KEY = 'dj_brow_contract_data';
+        const fieldsToSave = [
+            'contr_nome_artistico', 'contr_nome_civil', 'contr_cpf', 'contr_rg', 'contr_tel', 'contr_email', 'contr_end', 'contr_cidade', 'contr_uf', 'contr_cep',
+            'cli_nome', 'cli_cpf', 'cli_rg', 'cli_tel', 'cli_email', 'cli_end', 'cli_cidade', 'cli_uf', 'cli_cep',
+            'evt_tipo', 'evt_data', 'evt_inicio', 'evt_termino', 'evt_local', 'evt_tipo_local', 'evt_distancia_tomada', 'evt_equipamentos', 'evt_valor', 'evt_valor_extra', 'evt_pagamento', 'evt_foro', 'ass_local', 'ass_data',
+            'test1_nome', 'test1_cpf', 'test2_nome', 'test2_cpf', 'evt_sinal_percentual'
+        ];
+
+        function saveFormData() {
+            const data = {};
+            fieldsToSave.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) data[id] = el.value;
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function loadFormData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const data = JSON.parse(saved);
+                fieldsToSave.forEach(id => {
+                    if (data[id] !== undefined) {
+                        const el = document.getElementById(id);
+                        if (el) el.value = data[id];
+                    }
+                });
+            }
+        }
+
+        document.addEventListener('input', saveFormData);
+        document.addEventListener('change', saveFormData);
+        window.addEventListener('load', () => {
+            loadFormData();
+            preencherDataAtual();
+            atualizarHistorico();
+            atualizarTemplates();
+            atualizarDashboard();
+        });
+        window.addEventListener('beforeunload', saveFormData);
+    </script>
+</body>
+</html>
