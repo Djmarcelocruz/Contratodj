@@ -257,6 +257,10 @@
                         <input type="text" id="contr_end" required>
                     </div>
                     <div class="form-group">
+                        <label for="contr_bairro">Bairro *</label>
+                        <input type="text" id="contr_bairro" required>
+                    </div>
+                    <div class="form-group">
                         <label for="contr_cidade">Cidade *</label>
                         <input type="text" id="contr_cidade" required>
                     </div>
@@ -292,15 +296,22 @@
                         <label for="cli_email">E-mail *</label>
                         <input type="email" id="cli_email" required>
                     </div>
-                    <div class="form-group">
-                        <label for="cli_cep">CEP para Busca *</label>
-                        <input type="text" id="cli_cep" placeholder="00000-000" required>
+                </div>
+                <div class="form-group">
+                    <label for="cli_cep">CEP para Busca *</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="cli_cep" placeholder="00000-000" style="flex: 1;" required>
+                        <button class="btn btn-outline" onclick="buscarCEPCliente()">🔍 Buscar</button>
                     </div>
                 </div>
                 <div class="grid-3">
                     <div class="form-group">
                         <label for="cli_end">Endereço *</label>
                         <input type="text" id="cli_end" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cli_bairro">Bairro *</label>
+                        <input type="text" id="cli_bairro" required>
                     </div>
                     <div class="form-group">
                         <label for="cli_cidade">Cidade *</label>
@@ -617,6 +628,15 @@
             buscarCEP(cep, 'contr');
         }
 
+        function buscarCEPCliente() {
+            const cep = document.getElementById('cli_cep').value.replace(/\D/g, '');
+            if (cep.length !== 8) {
+                alert('CEP inválido! Digite 8 dígitos.');
+                return;
+            }
+            buscarCEP(cep, 'cli');
+        }
+
         function buscarCEP(cep, prefixo) {
             fetch(`https://viacep.com.br/ws/${cep}/json/`)
                 .then(r => r.json())
@@ -626,9 +646,11 @@
                         return;
                     }
                     document.getElementById(`${prefixo}_end`).value = data.logradouro;
+                    document.getElementById(`${prefixo}_bairro`).value = data.bairro || '';
                     document.getElementById(`${prefixo}_cidade`).value = data.localidade;
                     document.getElementById(`${prefixo}_uf`).value = data.uf;
                     saveFormData();
+                    mostrarMensagemSucesso(`✓ CEP encontrado! ${data.logradouro}, ${data.bairro}, ${data.localidade} - ${data.uf}`);
                 })
                 .catch(() => alert('Erro ao buscar CEP. Verifique sua conexão.'));
         }
@@ -776,8 +798,8 @@
                 <h2 style="text-align:center; margin-bottom: 30px; font-weight: bold;">CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE DJ</h2>
                 
                 <p><strong>1. DAS PARTES</strong></p>
-                <p><strong>CONTRATADO:</strong> ${val('contr_nome_civil')}, nome artístico ${val('contr_nome_artistico')}, inscrito no CPF sob nº ${val('contr_cpf')}, RG nº ${val('contr_rg')}, residente à ${val('contr_end')}, ${val('contr_cidade')} - ${val('contr_uf')}, CEP ${val('contr_cep')}, telefone ${val('contr_tel')}, email ${val('contr_email') || 'não informado'}.</p>
-                <p><strong>CONTRATANTE:</strong> ${val('cli_nome')}, inscrito no CPF/CNPJ sob nº ${val('cli_cpf')}, residente à ${val('cli_end')}, ${val('cli_cidade')} - ${val('cli_uf')}, CEP ${val('cli_cep')}, telefone ${val('cli_tel')}, email ${val('cli_email') || 'não informado'}.</p>
+                <p><strong>CONTRATADO:</strong> ${val('contr_nome_civil')}, nome artístico ${val('contr_nome_artistico')}, inscrito no CPF sob nº ${val('contr_cpf')}, RG nº ${val('contr_rg')}, residente à ${val('contr_end')}, ${val('contr_bairro') || 'não informado'}, ${val('contr_cidade')} - ${val('contr_uf')}, CEP ${val('contr_cep')}, telefone ${val('contr_tel')}, email ${val('contr_email') || 'não informado'}.</p>
+                <p><strong>CONTRATANTE:</strong> ${val('cli_nome')}, inscrito no CPF/CNPJ sob nº ${val('cli_cpf')}, residente à ${val('cli_end')}, ${val('cli_bairro') || 'não informado'}, ${val('cli_cidade')} - ${val('cli_uf')}, CEP ${val('cli_cep')}, telefone ${val('cli_tel')}, email ${val('cli_email') || 'não informado'}.</p>
 
                 <p><strong>2. DO OBJETO E ESCOPO DO SERVIÇO</strong></p>
                 <p>O objeto deste contrato é a prestação de serviços profissionais de DJ para ${tipoEvento} a ser realizado no dia ${dataBR(val('evt_data'))}, com início às ${val('evt_inicio')} e término às ${val('evt_termino')}, no local denominado ${val('evt_local')}. Duração prevista: ${val('evt_duracao')}.</p>
@@ -961,6 +983,7 @@
                 contr_tel: document.getElementById('contr_tel').value,
                 contr_email: document.getElementById('contr_email').value,
                 contr_end: document.getElementById('contr_end').value,
+                contr_bairro: document.getElementById('contr_bairro').value,
                 contr_cidade: document.getElementById('contr_cidade').value,
                 contr_uf: document.getElementById('contr_uf').value,
                 contr_cep: document.getElementById('contr_cep').value,
@@ -1005,6 +1028,7 @@
                 document.getElementById('contr_tel').value = template.contr_tel;
                 document.getElementById('contr_email').value = template.contr_email;
                 document.getElementById('contr_end').value = template.contr_end;
+                document.getElementById('contr_bairro').value = template.contr_bairro || '';
                 document.getElementById('contr_cidade').value = template.contr_cidade;
                 document.getElementById('contr_uf').value = template.contr_uf;
                 document.getElementById('contr_cep').value = template.contr_cep;
@@ -1053,8 +1077,8 @@
         // ===== SALVAMENTO AUTOMÁTICO =====
         const STORAGE_KEY = 'dj_brow_contract_data';
         const fieldsToSave = [
-            'contr_nome_artistico', 'contr_nome_civil', 'contr_cpf', 'contr_rg', 'contr_tel', 'contr_email', 'contr_end', 'contr_cidade', 'contr_uf', 'contr_cep',
-            'cli_nome', 'cli_cpf', 'cli_rg', 'cli_tel', 'cli_email', 'cli_end', 'cli_cidade', 'cli_uf', 'cli_cep',
+            'contr_nome_artistico', 'contr_nome_civil', 'contr_cpf', 'contr_rg', 'contr_tel', 'contr_email', 'contr_end', 'contr_bairro', 'contr_cidade', 'contr_uf', 'contr_cep',
+            'cli_nome', 'cli_cpf', 'cli_rg', 'cli_tel', 'cli_email', 'cli_end', 'cli_bairro', 'cli_cidade', 'cli_uf', 'cli_cep',
             'evt_tipo', 'evt_data', 'evt_inicio', 'evt_termino', 'evt_local', 'evt_tipo_local', 'evt_distancia_tomada', 'evt_equipamentos', 'evt_valor', 'evt_valor_extra', 'evt_pagamento', 'evt_foro', 'ass_local', 'ass_data',
             'test1_nome', 'test1_cpf', 'test2_nome', 'test2_cpf', 'evt_sinal_percentual'
         ];
