@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>DJ Brow — Dashboard v4.2</title>
+    <title>DJ Brow — Dashboard v4.1</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#00ff88">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -263,35 +263,12 @@
             background: rgba(0,212,255,0.05) !important;
             border-color: rgba(0,212,255,0.3) !important;
         }
-        .quick-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .quick-btn {
-            background: var(--card);
-            border: 1px solid var(--border);
-            padding: 12px;
-            border-radius: var(--radius-sm);
-            color: var(--text);
-            font-size: 0.8rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: var(--transition);
-            text-align: center;
-        }
-        .quick-btn:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
         @media (max-width: 600px) {
             .stats-overview { grid-template-columns: 1fr; }
             .secondary-grid { grid-template-columns: 1fr; }
             .dashboard-header h1 { font-size: 1.8rem; }
             .menu-item { padding: 15px; }
             .menu-item .icon { font-size: 1.8rem; }
-            .quick-actions { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -299,7 +276,7 @@
     <div class="container">
         <div class="dashboard-header">
             <h1>🎧 DJ BROWW</h1>
-            <p class="subtitle">Sistema de Gestão Profissional v4.2</p>
+            <p class="subtitle">Sistema de Gestão Profissional v4.1</p>
         </div>
 
         <!-- Aviso de Segurança / Backup -->
@@ -332,12 +309,6 @@
             </div>
         </div>
 
-        <!-- Ações Rápidas -->
-        <div class="quick-actions">
-            <button class="quick-btn" onclick="novoOrcamento()">💰 Novo Orçamento</button>
-            <button class="quick-btn" onclick="novoContrato()">📄 Novo Contrato</button>
-        </div>
-
         <!-- Próximos Eventos -->
         <div class="next-events" id="nextEventsSection" style="display:none;">
             <h3>📅 Próximos Eventos</h3>
@@ -349,21 +320,21 @@
                 <div class="icon">💰</div>
                 <div class="info">
                     <h3>Orçamentos</h3>
-                    <p>Calcular custos, lucros, horas extras e enviar para contrato</p>
+                    <p>Calcular custos, lucros e enviar para contrato</p>
                 </div>
             </a>
             <a href="dj_contract_juridico_atualizado.html" class="menu-item blue">
                 <div class="icon">🛡️</div>
                 <div class="info">
                     <h3>Contratos</h3>
-                    <p>Gerar contrato blindado com assinatura digital e número sequencial</p>
+                    <p>Gerar contrato blindado com termo de ciência</p>
                 </div>
             </a>
             <a href="historico_contratos.html" class="menu-item warning">
                 <div class="icon">📋</div>
                 <div class="info">
                     <h3>Histórico & Financeiro</h3>
-                    <p>Gerenciar eventos, pagamentos, recibos, avaliações e exportar CSV</p>
+                    <p>Gerenciar eventos, pagamentos e recibos numerados</p>
                 </div>
             </a>
         </div>
@@ -376,12 +347,12 @@
             <a href="calculadora_roi.html" class="secondary-item">
                 <div class="icon">📊</div>
                 <h4>Calculadora ROI</h4>
-                <p>Retorno de investimento com custos reais</p>
+                <p>Retorno de investimento</p>
             </a>
             <a href="historico_contratos.html" class="secondary-item">
                 <div class="icon">📄</div>
                 <h4>Gerar Recibos</h4>
-                <p>Comprovantes profissionais numerados</p>
+                <p>Comprovantes profissionais</p>
             </a>
         </div>
 
@@ -393,8 +364,8 @@
         </div>
 
         <div class="version-info">
-            <p>DJ Brow v4.2 — Sistema de Gestão Profissional</p>
-            <p>Com Assinatura Digital, Criptografia AES-256, ViaCEP e Relatórios</p>
+            <p>DJ Brow v4.1 — Sistema de Gestão Profissional</p>
+            <p>Com Criptografia, Assinatura Digital, ViaCEP e Relatórios</p>
             <p style="margin-top:5px; font-size:0.7rem;">⚠️ Dados armazenados localmente — faça backups regularmente</p>
         </div>
     </div>
@@ -431,15 +402,6 @@
                 deferredPrompt = null;
             });
         });
-
-        // ===== AÇÕES RÁPIDAS =====
-        function novoOrcamento() {
-            window.location.href = 'controleeorcamento.html';
-        }
-
-        function novoContrato() {
-            window.location.href = 'dj_contract_juridico_atualizado.html';
-        }
 
         // ===== ESTATÍSTICAS =====
         async function loadDashboardStats() {

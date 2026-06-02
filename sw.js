@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dj-brow-v4-2';
+const CACHE_NAME = 'dj-brow-v4';
 const urlsToCache = [
   './',
   './index.html',
@@ -20,22 +20,18 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-// Estratégia Stale-While-Revalidate: serve do cache imediatamente, atualiza em background
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      const fetchPromise = fetch(event.request).then(networkResponse => {
-        if (networkResponse && networkResponse.ok) {
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseClone);
-          });
-        }
-        return networkResponse;
-      }).catch(() => cachedResponse);
-
-      return cachedResponse || fetchPromise;
-    })
+    caches.match(event.request)
+      .then(response => {
+        if (response) return response;
+        return fetch(event.request).catch(() => {
+          // Fallback para offline
+          if (event.request.mode === 'navigate') {
+            return caches.match('./index.html');
+          }
+        });
+      })
   );
 });
 
