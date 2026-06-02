@@ -1,12 +1,28 @@
 {
-  "name": "DJ Brow - Gestão Profissional",
-  "short_name": "DJ Brow",
+  "name": "DJ BROWW - Sistema de Gestão",
+  "short_name": "DJ BROWW",
+  "description": "Sistema profissional de gestão para DJs - Orçamentos, Contratos, Histórico e ROI",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#050505",
   "theme_color": "#00ff88",
+  "orientation": "portrait",
+  "scope": "./",
   "icons": [
-    { "src": "icon-192x192.svg", "sizes": "192x192", "type": "image/svg+xml" },
-    { "src": "icon-192x192.svg", "sizes": "512x512", "type": "image/svg+xml" }
-  ]
+    {
+      "src": "./icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-192x192.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "pt-BR",
+  "dir": "ltr"
 }
