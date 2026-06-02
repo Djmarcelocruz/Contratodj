@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>DJ Brow — Calculadora ROI v4.0</title>
+    <title>DJ Brow — Calculadora ROI v4.2</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
     <style>
@@ -50,6 +50,10 @@
             display: block;
         }
 
+        .result-item .value.danger { color: var(--danger); }
+        .result-item .value.info { color: var(--info); }
+        .result-item .value.warning { color: var(--warning); }
+
         .result-item .label {
             font-size: 0.65rem;
             color: var(--text-muted);
@@ -80,6 +84,59 @@
             color: #000;
         }
 
+        .progress-fill.danger {
+            background: linear-gradient(90deg, var(--danger), #ff6b6b);
+            color: #fff;
+        }
+
+        .progress-fill.warning {
+            background: linear-gradient(90deg, var(--warning), #ffc720);
+            color: #000;
+        }
+
+        .section-advanced {
+            background: linear-gradient(135deg, rgba(0,255,136,0.03), rgba(0,212,255,0.03));
+            border: 1px solid rgba(0,255,136,0.1);
+        }
+
+        .meta-box {
+            background: rgba(0,255,136,0.05);
+            border: 1px solid rgba(0,255,136,0.15);
+            border-radius: var(--radius-sm);
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 0.85rem;
+            border-bottom: 1px solid rgba(0,255,136,0.1);
+        }
+
+        .meta-row:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .projection-box {
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .projection-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
         @media (max-width: 600px) {
             .result-grid { grid-template-columns: 1fr; }
             .roi-card h2 { font-size: 1.5rem; }
@@ -107,7 +164,7 @@
         </div>
 
         <div class="card">
-            <div class="section-title">💰 Investimentos</div>
+            <div class="section-title">💰 INVESTIMENTOS</div>
             <div class="grid">
                 <div class="form-group">
                     <label>Custo do Equipamento R$</label>
@@ -130,8 +187,34 @@
             </div>
         </div>
 
+        <div class="card section-advanced">
+            <div class="section-title">📊 CUSTOS OPERACIONAIS</div>
+            <div class="grid">
+                <div class="form-group">
+                    <label>Custo Fixo Mensal R$</label>
+                    <input type="text" id="cost_fixed_monthly" placeholder="0,00" oninput="maskMoneyInput(this); calculateROI()">
+                    <small style="color:var(--text-dim); font-size:0.7rem;">Aluguel, internet, contador...</small>
+                </div>
+                <div class="form-group">
+                    <label>Período (meses)</label>
+                    <input type="number" id="period_months" placeholder="12" value="12" min="1" oninput="calculateROI()">
+                </div>
+            </div>
+            <div class="grid">
+                <div class="form-group">
+                    <label>Impostos (%)</label>
+                    <input type="number" id="tax_percent" placeholder="6" value="6" min="0" max="100" step="0.5" oninput="calculateROI()">
+                    <small style="color:var(--text-dim); font-size:0.7rem;">MEI 6%, Simples 11%, etc.</small>
+                </div>
+                <div class="form-group">
+                    <label>Meta de Faturamento R$</label>
+                    <input type="text" id="revenue_goal" placeholder="0,00" oninput="maskMoneyInput(this); calculateROI()">
+                </div>
+            </div>
+        </div>
+
         <div class="card">
-            <div class="section-title">📈 Retornos</div>
+            <div class="section-title">📈 RETORNOS</div>
             <div class="grid">
                 <div class="form-group">
                     <label>Faturamento Anual R$</label>
@@ -145,15 +228,23 @@
         </div>
 
         <div class="card" id="resultsCard" style="display:none;">
-            <div class="section-title">📊 Resultados</div>
+            <div class="section-title">📊 RESULTADOS DETALHADOS</div>
             <div class="result-grid">
                 <div class="result-item">
                     <span class="value" id="resultTotalInvest">R$ 0</span>
                     <span class="label">Investimento Total</span>
                 </div>
                 <div class="result-item">
+                    <span class="value" id="resultFixedCosts">R$ 0</span>
+                    <span class="label">Custos Fixos Totais</span>
+                </div>
+                <div class="result-item">
+                    <span class="value" id="resultTaxes">R$ 0</span>
+                    <span class="label">Impostos</span>
+                </div>
+                <div class="result-item">
                     <span class="value" id="resultNetProfit">R$ 0</span>
-                    <span class="label">Lucro Líquido</span>
+                    <span class="label">Lucro Líquido Real</span>
                 </div>
                 <div class="result-item">
                     <span class="value" id="resultPerEvent">R$ 0</span>
@@ -162,6 +253,53 @@
                 <div class="result-item">
                     <span class="value" id="resultPayback">0 meses</span>
                     <span class="label">Payback</span>
+                </div>
+            </div>
+
+            <div class="meta-box">
+                <div class="meta-row">
+                    <span>Faturamento Bruto:</span>
+                    <span id="metaRevenue">R$ 0,00</span>
+                </div>
+                <div class="meta-row">
+                    <span>Investimentos:</span>
+                    <span id="metaInvest">R$ 0,00</span>
+                </div>
+                <div class="meta-row">
+                    <span>Custos Fixos:</span>
+                    <span id="metaFixed">R$ 0,00</span>
+                </div>
+                <div class="meta-row">
+                    <span>Impostos:</span>
+                    <span id="metaTaxes">R$ 0,00</span>
+                </div>
+                <div class="meta-row">
+                    <span>LUCRO REAL:</span>
+                    <span id="metaProfit">R$ 0,00</span>
+                </div>
+                <div class="meta-row">
+                    <span>MARGEM LÍQUIDA:</span>
+                    <span id="metaMargin">0%</span>
+                </div>
+            </div>
+
+            <div class="projection-box" id="projectionBox" style="display:none;">
+                <div class="projection-title">📈 PROJEÇÃO vs META</div>
+                <div class="meta-row">
+                    <span>Meta de Faturamento:</span>
+                    <span id="projGoal">R$ 0,00</span>
+                </div>
+                <div class="meta-row">
+                    <span>Faturamento Real:</span>
+                    <span id="projReal">R$ 0,00</span>
+                </div>
+                <div class="meta-row">
+                    <span>Diferença:</span>
+                    <span id="projDiff">R$ 0,00</span>
+                </div>
+                <div class="meta-row">
+                    <span>Eventos necessários p/ meta:</span>
+                    <span id="projEventsNeeded">0</span>
                 </div>
             </div>
         </div>
@@ -199,47 +337,105 @@
             const revenue = getVal('return_revenue');
             const events = getVal('return_events') || 1;
 
+            // Custos operacionais
+            const fixedMonthly = getVal('cost_fixed_monthly');
+            const periodMonths = getVal('period_months') || 12;
+            const taxPercent = getVal('tax_percent') || 0;
+            const revenueGoal = getVal('revenue_goal');
+
             const totalInvest = investEquip + investMarketing + investEducation + investOther;
-            const netProfit = revenue - totalInvest;
+            const totalFixed = fixedMonthly * periodMonths;
+            const taxes = revenue * (taxPercent / 100);
+
+            const netProfit = revenue - totalInvest - totalFixed - taxes;
             const roi = totalInvest > 0 ? ((netProfit / totalInvest) * 100) : 0;
             const perEvent = revenue / events;
-            const payback = netProfit > 0 ? Math.ceil(totalInvest / (netProfit / 12)) : 0;
+            const payback = netProfit > 0 ? Math.ceil(totalInvest / (netProfit / periodMonths)) : 0;
+            const margin = revenue > 0 ? ((netProfit / revenue) * 100) : 0;
 
             // Atualizar display
             document.getElementById('roiValue').textContent = roi.toFixed(1) + '%';
-            document.getElementById('roiProgress').style.width = Math.min(Math.max(roi, 0), 100) + '%';
-            document.getElementById('roiProgress').textContent = roi.toFixed(1) + '%';
+            const progressEl = document.getElementById('roiProgress');
+            progressEl.style.width = Math.min(Math.max(Math.abs(roi), 0), 100) + '%';
+            progressEl.textContent = roi.toFixed(1) + '%';
+
+            if (roi < 0) {
+                progressEl.classList.add('danger');
+                progressEl.classList.remove('warning');
+            } else if (roi < 30) {
+                progressEl.classList.add('warning');
+                progressEl.classList.remove('danger');
+            } else {
+                progressEl.classList.remove('danger', 'warning');
+            }
 
             // Mostrar resultados se houver dados
             if (totalInvest > 0 || revenue > 0) {
                 document.getElementById('resultsCard').style.display = 'block';
                 document.getElementById('resultTotalInvest').textContent = totalInvest.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+                document.getElementById('resultFixedCosts').textContent = totalFixed.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+                document.getElementById('resultTaxes').textContent = taxes.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
                 document.getElementById('resultNetProfit').textContent = netProfit.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+                document.getElementById('resultNetProfit').className = 'value ' + (netProfit >= 0 ? '' : 'danger');
                 document.getElementById('resultPerEvent').textContent = perEvent.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
                 document.getElementById('resultPayback').textContent = payback > 0 ? payback + ' meses' : 'N/A';
+
+                // Meta box
+                document.getElementById('metaRevenue').textContent = revenue.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+                document.getElementById('metaInvest').textContent = totalInvest.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+                document.getElementById('metaFixed').textContent = totalFixed.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+                document.getElementById('metaTaxes').textContent = taxes.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+                document.getElementById('metaProfit').textContent = netProfit.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+                document.getElementById('metaProfit').style.color = netProfit >= 0 ? 'var(--primary)' : 'var(--danger)';
+                document.getElementById('metaMargin').textContent = margin.toFixed(1) + '%';
+                document.getElementById('metaMargin').style.color = margin >= 0 ? 'var(--primary)' : 'var(--danger)';
+
+                // Projeção
+                if (revenueGoal > 0) {
+                    document.getElementById('projectionBox').style.display = 'block';
+                    document.getElementById('projGoal').textContent = revenueGoal.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+                    document.getElementById('projReal').textContent = revenue.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+                    const diff = revenue - revenueGoal;
+                    document.getElementById('projDiff').textContent = (diff >= 0 ? '+' : '') + diff.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+                    document.getElementById('projDiff').style.color = diff >= 0 ? 'var(--primary)' : 'var(--danger)';
+
+                    const avgPerEvent = revenue / events;
+                    const needed = avgPerEvent > 0 ? Math.ceil((revenueGoal - revenue) / avgPerEvent) : 0;
+                    document.getElementById('projEventsNeeded').textContent = needed > 0 ? needed + ' eventos' : 'Meta atingida!';
+                } else {
+                    document.getElementById('projectionBox').style.display = 'none';
+                }
             }
 
-            return { totalInvest, netProfit, roi, perEvent, payback };
+            saveData();
+            return { totalInvest, totalFixed, taxes, netProfit, roi, perEvent, payback, margin };
         }
 
         function copyROIReport() {
             const r = calculateROI();
-            const report = `📊 RELATÓRIO ROI - DJ BROWW
+            const report = `📊 RELATÓRIO ROI - DJ BROWW v4.2
 ━━━━━━━━━━━━━━━━━━━━━━
 💰 INVESTIMENTOS:
 • Equipamento: ${getVal('invest_equip').toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
 • Marketing: ${getVal('invest_marketing').toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
 • Educação: ${getVal('invest_education').toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
 • Outros: ${getVal('invest_other').toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
-• TOTAL: ${r.totalInvest.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+• TOTAL INVESTIDO: ${r.totalInvest.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+
+📊 CUSTOS OPERACIONAIS:
+• Fixo Mensal: ${getVal('cost_fixed_monthly').toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+• Período: ${getVal('period_months')} meses
+• Custos Fixos Totais: ${r.totalFixed.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+• Impostos (${getVal('tax_percent')}%): ${r.taxes.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
 
 📈 RETORNOS:
-• Faturamento Anual: ${getVal('return_revenue').toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+• Faturamento: ${getVal('return_revenue').toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
 • Eventos Realizados: ${getVal('return_events')}
 • Média por Evento: ${r.perEvent.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
 
 ✅ RESULTADOS:
-• Lucro Líquido: ${r.netProfit.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+• Lucro Líquido Real: ${r.netProfit.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+• Margem Líquida: ${r.margin.toFixed(1)}%
 • ROI: ${r.roi.toFixed(1)}%
 • Payback: ${r.payback > 0 ? r.payback + ' meses' : 'N/A'}
 ━━━━━━━━━━━━━━━━━━━━━━`;
@@ -252,12 +448,41 @@
         function resetROI() {
             DJ_BROWW.confirm('Limpar todos os campos?', () => {
                 document.querySelectorAll('input').forEach(i => i.value = '');
+                document.getElementById('period_months').value = '12';
+                document.getElementById('tax_percent').value = '6';
                 document.getElementById('resultsCard').style.display = 'none';
                 document.getElementById('roiValue').textContent = '0%';
                 document.getElementById('roiProgress').style.width = '0%';
+                document.getElementById('roiProgress').classList.remove('danger', 'warning');
                 DJ_BROWW.toast('Campos limpos', 'info');
             });
         }
+
+        function saveData() {
+            const data = {};
+            ['invest_equip', 'invest_marketing', 'invest_education', 'invest_other', 
+             'cost_fixed_monthly', 'period_months', 'tax_percent', 'revenue_goal',
+             'return_revenue', 'return_events'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) data[id] = el.value;
+            });
+            localStorage.setItem('dj_brow_roi_data', JSON.stringify(data));
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('dj_brow_roi_data');
+            if (saved) {
+                const data = JSON.parse(saved);
+                Object.keys(data).forEach(id => {
+                    if (document.getElementById(id)) {
+                        document.getElementById(id).value = data[id];
+                    }
+                });
+                calculateROI();
+            }
+        }
+
+        window.addEventListener('load', loadData);
     </script>
 </body>
 </html>

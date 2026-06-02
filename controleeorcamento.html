@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>DJ BROWW - Orçamento v4.1</title>
+    <title>DJ BROWW - Orçamento v4.2</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
     <style>
@@ -63,6 +63,14 @@
             font-weight: 900;
             position: relative;
             z-index: 1;
+        }
+        .total-card .sinal-info {
+            position: relative;
+            z-index: 1;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            font-weight: 700;
+            opacity: 0.9;
         }
         .section { 
             background: var(--card); 
@@ -126,6 +134,33 @@
             vertical-align: middle;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+        .calc-row .calc-label { color: var(--text-muted); }
+        .calc-row .calc-value { font-weight: 700; color: var(--primary); }
+        .calc-row .calc-value.danger { color: var(--danger); }
+        .calc-row .calc-value.info { color: var(--info); }
+
+        .highlight-box {
+            background: rgba(0,255,136,0.05);
+            border: 1px solid rgba(0,255,136,0.2);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .obs-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
         @media (max-width: 600px) {
             .group { grid-template-columns: 1fr; }
             .total-card h2 { font-size: 2.2rem; }
@@ -143,6 +178,7 @@
     <div class="total-card">
         <p>Valor Final ao Cliente</p>
         <h2 id="totalDisplay">R$ 0,00</h2>
+        <div class="sinal-info" id="sinalDisplay">Sinal (20%): R$ 0,00</div>
     </div>
 
     <div class="cost-breakdown" id="costBreakdown" style="display:none;">
@@ -152,6 +188,58 @@
         <div class="cost-row"><span>👥 Equipe:</span><span id="costTeam">R$ 0,00</span></div>
         <div class="cost-row"><span>🎧 Seu Cachet:</span><span id="costDJ">R$ 0,00</span></div>
         <div class="cost-row"><span>💰 TOTAL:</span><span id="costTotal">R$ 0,00</span></div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🎧 INFORMAÇÕES DO EVENTO</div>
+        <div class="group">
+            <div>
+                <label>Horas do Evento</label>
+                <input type="tel" id="event_hours" placeholder="0" oninput="calculate()" min="0" step="0.5" inputmode="decimal">
+            </div>
+            <div>
+                <label>Horas de Som</label>
+                <input type="tel" id="hours" placeholder="0" oninput="calculate()" min="0" step="0.5" inputmode="decimal">
+            </div>
+        </div>
+        <div class="group">
+            <div>
+                <label>Valor/Hora R$</label>
+                <input type="tel" id="rate" placeholder="0,00" oninput="maskMoneyInput(this); calculate()" inputmode="decimal">
+            </div>
+            <div>
+                <label>Valor Hora Extra R$</label>
+                <input type="tel" id="extra_hour_rate" placeholder="0,00" oninput="maskMoneyInput(this); calculate()" inputmode="decimal">
+            </div>
+        </div>
+        <div class="group">
+            <div>
+                <label>Cachê Mínimo R$</label>
+                <input type="tel" id="cache_minimo" placeholder="0,00" oninput="maskMoneyInput(this); calculate()" inputmode="decimal">
+            </div>
+            <div>
+                <label>Nº Convidados</label>
+                <input type="tel" id="guests" placeholder="0" oninput="calculate()" min="0" inputmode="numeric">
+            </div>
+        </div>
+        <div class="highlight-box" id="calcDetails" style="display:none;">
+            <div class="calc-row">
+                <span class="calc-label">Base (horas × valor):</span>
+                <span class="calc-value" id="calcBase">R$ 0,00</span>
+            </div>
+            <div class="calc-row">
+                <span class="calc-label">Horas extras:</span>
+                <span class="calc-value info" id="calcExtraHours">0h</span>
+            </div>
+            <div class="calc-row">
+                <span class="calc-label">Valor horas extras:</span>
+                <span class="calc-value info" id="calcExtraValue">R$ 0,00</span>
+            </div>
+            <div class="calc-row">
+                <span class="calc-label">Cachê mínimo aplicado:</span>
+                <span class="calc-value" id="calcCache">R$ 0,00</span>
+            </div>
+        </div>
     </div>
 
     <div class="section">
@@ -197,17 +285,7 @@
     </div>
 
     <div class="section">
-        <div class="section-title">🎧 DJ E EQUIPE</div>
-        <div class="group">
-            <div>
-                <label>Horas de Som</label>
-                <input type="tel" id="hours" placeholder="0" oninput="calculate()" min="0" step="0.5" inputmode="decimal">
-            </div>
-            <div>
-                <label>Valor/Hora R$</label>
-                <input type="tel" id="rate" placeholder="0,00" oninput="maskMoneyInput(this); calculate()" inputmode="decimal">
-            </div>
-        </div>
+        <div class="section-title">👥 EQUIPE</div>
         <div class="group">
             <div>
                 <label>Ajudante R$</label>
@@ -272,6 +350,10 @@
             <label>Término</label>
             <input type="time" id="preview_termino">
         </div>
+        <div class="form-group">
+            <label>Observações / Condições Especiais</label>
+            <textarea id="preview_obs" class="obs-textarea" placeholder="Ex: Sem energia no local, acesso restrito, subir escada..."></textarea>
+        </div>
     </div>
 
     <div class="btn-box">
@@ -326,17 +408,37 @@
     }
 
     function calculate() {
+        const eventHours = getVal('event_hours');
+        const somHours = getVal('hours');
+        const rate = getVal('rate');
+        const extraHourRate = getVal('extra_hour_rate');
+        const cacheMinimo = getVal('cache_minimo');
+
+        // Cálculo de horas extras
+        const extraHours = Math.max(0, somHours - eventHours);
+        const extraValue = extraHours * extraHourRate;
+
+        // Cálculo base
+        let baseValue = somHours * rate;
+
+        // Aplicar cachê mínimo
+        const cacheApplied = Math.max(baseValue, cacheMinimo);
+        const cacheDiff = cacheApplied - baseValue;
+
+        // Logística
         const km = getVal('km');
         const gasP = getVal('gas');
         const med = getVal('media') || 10;
         const fuelCost = (km / med) * gasP;
 
         const costs = getVal('toll') + getVal('freight') + getVal('equip_third') + getVal('staff') + getVal('extra') + getVal('maint');
-        const profitParts = getVal('equip_own') + (getVal('hours') * getVal('rate'));
+        const profitParts = getVal('equip_own') + cacheApplied + extraValue;
 
         const total = fuelCost + costs + profitParts;
+        const sinal = total * 0.20;
 
         document.getElementById('totalDisplay').innerText = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        document.getElementById('sinalDisplay').innerText = `Sinal (20%): ${sinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
 
         const breakdown = document.getElementById('costBreakdown');
         if (total > 0) {
@@ -345,20 +447,38 @@
             document.getElementById('costLogistics').innerText = (getVal('toll') + getVal('freight')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             document.getElementById('costEquip').innerText = (getVal('equip_third') + getVal('maint')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             document.getElementById('costTeam').innerText = (getVal('staff') + getVal('extra')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            document.getElementById('costDJ').innerText = (getVal('equip_own') + (getVal('hours') * getVal('rate'))).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('costDJ').innerText = (getVal('equip_own') + cacheApplied + extraValue).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             document.getElementById('costTotal').innerText = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         } else {
             breakdown.style.display = 'none';
         }
 
+        // Mostrar detalhes de cálculo
+        const calcDetails = document.getElementById('calcDetails');
+        if (somHours > 0 || eventHours > 0) {
+            calcDetails.style.display = 'block';
+            document.getElementById('calcBase').innerText = baseValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('calcExtraHours').innerText = extraHours.toFixed(1) + 'h';
+            document.getElementById('calcExtraValue').innerText = extraValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('calcCache').innerText = cacheDiff > 0 ? cacheDiff.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Não aplicado';
+        } else {
+            calcDetails.style.display = 'none';
+        }
+
         saveData();
-        return { total, fuelCost, costs, profitParts };
+        return { total, fuelCost, costs, profitParts, sinal, extraHours, extraValue, cacheApplied };
     }
 
     function copyReport() {
         const d = calculate();
         const report = `📊 RELATÓRIO INTERNO DJ BROWW
 ━━━━━━━━━━━━━━━━━━━━━━
+🎧 EVENTO:
+• Horas Evento: ${getVal('event_hours')}h
+• Horas Som: ${getVal('hours')}h
+• Horas Extras: ${d.extraHours.toFixed(1)}h
+• Convidados: ${getVal('guests') || 0}
+
 ⛽ Combustível: ${d.fuelCost.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
 🚚 Carreto: ${getVal('freight').toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
 🛣️ Pedágios: ${getVal('toll').toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
@@ -367,10 +487,13 @@
 🍽️ Alimentação: ${getVal('extra').toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
 🛠️ Manutenção: ${getVal('maint').toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
 ━━━━━━━━━━━━━━━━━━━━━━
-🎧 Meu Cachet (DJ): ${(getVal('hours') * getVal('rate')).toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
+🎧 Cachet Base: ${(getVal('hours') * getVal('rate')).toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
 📦 Uso Equip. Próprio: ${getVal('equip_own').toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
+⏱️ Horas Extras: ${d.extraValue.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
+💰 Cachê Mínimo: ${getVal('cache_minimo').toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
 ━━━━━━━━━━━━━━━━━━━━━━
 💰 TOTAL A COBRAR: ${document.getElementById('totalDisplay').innerText}
+💵 SINAL (20%): ${d.sinal.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
 ✅ SEU LUCRO REAL: ${d.profitParts.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
 📉 CUSTOS TOTAIS: ${(d.fuelCost + d.costs).toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}`;
 
@@ -381,13 +504,20 @@
 
     function copyClient() {
         const total = document.getElementById('totalDisplay').innerText;
+        const sinal = document.getElementById('sinalDisplay').innerText;
+        const eventHours = getVal('event_hours');
+        const somHours = getVal('hours');
+        const extraHours = Math.max(0, somHours - eventHours);
+
         const msg = `*ORÇAMENTO DJ BROWW* 🎧
 
 ✅ *Serviço:* DJ Profissional Completo
+🕐 *Duração:* ${eventHours}h de evento${extraHours > 0 ? ` (+${extraHours.toFixed(1)}h extra)` : ''}
 🚚 *Logística & Montagem:* Inclusas
 🎶 *Equipamento de Qualidade:* Incluso
 
 💰 *INVESTIMENTO:* ${total}
+${sinal}
 
 _Válido por 5 dias._
 _Para reservar a data, sinal de 20%._
@@ -413,11 +543,13 @@ _Para reservar a data, sinal de 20%._
             toll: getVal('toll'), freight: getVal('freight'),
             equip_own: getVal('equip_own'), equip_third: getVal('equip_third'),
             maint: getVal('maint'), hours: getVal('hours'), rate: getVal('rate'),
-            staff: getVal('staff'), extra: getVal('extra'), total: d.total
+            staff: getVal('staff'), extra: getVal('extra'), total: d.total,
+            event_hours: getVal('event_hours'), extra_hour_rate: getVal('extra_hour_rate'),
+            cache_minimo: getVal('cache_minimo'), guests: getVal('guests')
         }));
 
         const eventData = {};
-        ['preview_cliente', 'preview_cpf', 'preview_tel', 'preview_tipo', 'preview_local', 'preview_data', 'preview_inicio', 'preview_termino'].forEach(id => {
+        ['preview_cliente', 'preview_cpf', 'preview_tel', 'preview_tipo', 'preview_local', 'preview_data', 'preview_inicio', 'preview_termino', 'preview_obs'].forEach(id => {
             const el = document.getElementById(id);
             if (el && el.value.trim()) {
                 eventData[id.replace('preview_', '')] = el.value.trim();
@@ -436,11 +568,11 @@ _Para reservar a data, sinal de 20%._
 
     function saveData() {
         const data = {};
-        ['km', 'media', 'preview_cliente', 'preview_cpf', 'preview_tel', 'preview_tipo', 'preview_local', 'preview_data', 'preview_inicio', 'preview_termino', 'preview_cep'].forEach(id => {
+        ['km', 'media', 'event_hours', 'hours', 'guests', 'preview_cliente', 'preview_cpf', 'preview_tel', 'preview_tipo', 'preview_local', 'preview_data', 'preview_inicio', 'preview_termino', 'preview_cep', 'preview_obs'].forEach(id => {
             const el = document.getElementById(id);
             if (el) data[id] = el.value;
         });
-        ['gas', 'toll', 'freight', 'equip_own', 'equip_third', 'maint', 'hours', 'rate', 'staff', 'extra'].forEach(id => {
+        ['gas', 'toll', 'freight', 'equip_own', 'equip_third', 'maint', 'rate', 'extra_hour_rate', 'cache_minimo', 'staff', 'extra'].forEach(id => {
             const el = document.getElementById(id);
             if (el) data[id] = el.value;
         });
@@ -495,14 +627,14 @@ _Para reservar a data, sinal de 20%._
 
     function resetApp() { 
         DJ_BROWW.confirm('Tem certeza que deseja limpar todos os campos?', () => {
-            document.querySelectorAll('input').forEach(i => i.value = '');
+            document.querySelectorAll('input, textarea').forEach(i => i.value = '');
             document.getElementById('media').value = '10';
             calculate();
             DJ_BROWW.toast('Campos limpos!', 'info');
         });
     }
 
-    // ViaCEP no orçamento
+    // Auto-máscaras com DJ_BROWW
     document.getElementById('preview_cep').addEventListener('input', function(e) {
         e.target.value = DJ_BROWW.maskCEP(e.target.value);
     });
@@ -516,36 +648,22 @@ _Para reservar a data, sinal de 20%._
         if (data) {
             const endereco = `${data.logradouro}${data.logradouro && data.bairro ? ', ' : ''}${data.bairro} — ${data.localidade}/${data.uf}`;
             const localInput = document.getElementById('preview_local');
-            if (!localInput.value || localInput.value.trim() === '') {
-                localInput.value = endereco;
-                DJ_BROWW.toast('✅ Endereço do evento preenchido!', 'success');
-            } else {
-                localInput.value = endereco;
-                DJ_BROWW.toast('📍 Endereço atualizado!', 'info');
-            }
+            localInput.value = endereco;
+            DJ_BROWW.toast('✅ Endereço preenchido!', 'success');
         } else {
             DJ_BROWW.toast('❌ CEP não encontrado', 'error');
         }
     });
 
-    // Máscaras
-    document.getElementById('preview_cpf').addEventListener('input', function(e) {
-        const val = e.target.value.replace(/\D/g, '');
-        e.target.value = val.length > 11 ? DJ_BROWW.maskCNPJ(val) : DJ_BROWW.maskCPF(val);
-    });
-
-    document.getElementById('preview_tel').addEventListener('input', function(e) {
-        e.target.value = DJ_BROWW.maskPhone(e.target.value);
-    });
+    DJ_BROWW.autoMask(document.getElementById('preview_cpf'), 'cpf_cnpj');
+    DJ_BROWW.autoMask(document.getElementById('preview_tel'), 'phone');
 
     // Autosave a cada 30s
-    setInterval(() => {
-        saveData();
-    }, 30000);
+    setInterval(() => { saveData(); }, 30000);
 
     // Alerta ao sair com dados
     let hasData = false;
-    document.querySelectorAll('input').forEach(el => {
+    document.querySelectorAll('input, textarea').forEach(el => {
         el.addEventListener('input', () => { hasData = true; });
     });
     window.addEventListener('beforeunload', (e) => {

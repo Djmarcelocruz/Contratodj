@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>DJ Brow — Histórico Financeiro v4.0</title>
+    <title>DJ Brow — Histórico Financeiro v4.2</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
     <style>
@@ -46,6 +46,7 @@
         .val-bolso { color: var(--primary); }
         .val-receber { color: var(--danger); }
         .val-total { color: var(--info); }
+        .val-lucro { color: var(--success); }
 
         .filter-bar { 
             display: grid; 
@@ -173,6 +174,7 @@
 
         .finance-saldo { color: var(--danger); }
         .finance-pago { color: var(--primary); }
+        .finance-lucro { color: var(--success); }
 
         .event-footer { 
             display: flex; 
@@ -229,6 +231,39 @@
             opacity: 0.3;
         }
 
+        .stars {
+            display: flex;
+            gap: 4px;
+            margin-top: 5px;
+        }
+        .star {
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.3;
+            transition: 0.2s;
+        }
+        .star.active {
+            opacity: 1;
+            color: var(--warning);
+        }
+        .star:hover {
+            opacity: 0.8;
+        }
+
+        .obs-box {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .obs-box strong {
+            color: var(--primary);
+        }
+
         @media print {
             body * { visibility: hidden; }
             #receiptModal, #receiptModal * { visibility: visible; }
@@ -281,9 +316,22 @@
                 <h3>A Receber</h3>
                 <div id="totalSaldo" class="value val-receber">R$ 0,00</div>
             </div>
+            <div class="stat-card">
+                <h3>Lucro Real</h3>
+                <div id="totalLucro" class="value val-lucro">R$ 0,00</div>
+            </div>
+            <div class="stat-card">
+                <h3>Média por Evento</h3>
+                <div id="mediaEvento" class="value val-total">R$ 0,00</div>
+            </div>
         </div>
 
         <div class="card">
+            <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+                <button class="btn btn-outline btn-sm" onclick="exportarCSV()">📊 Exportar CSV</button>
+                <button class="btn btn-outline btn-sm" onclick="compararOrcadoReal()">📈 Orçado vs Real</button>
+            </div>
+
             <div class="filter-bar">
                 <select id="filterMonth">
                     <option value="all">Todos os Meses</option>
@@ -300,7 +348,9 @@
                     <option value="10">Novembro</option>
                     <option value="11">Dezembro</option>
                 </select>
-                <input type="number" id="filterYear" placeholder="Ano" value="2026">
+                <select id="filterYear">
+                    <option value="">Todos os Anos</option>
+                </select>
             </div>
 
             <div class="search-box">
@@ -327,6 +377,17 @@
                 <small style="color:var(--text-dim); display:block; margin-top:5px;">
                     Saldo restante: <span id="currentSaldo" style="color:var(--danger); font-weight:700;"></span>
                 </small>
+            </div>
+            <div style="margin-bottom:15px;">
+                <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:5px;">
+                    Forma de Pagamento
+                </label>
+                <select id="paymentForm">
+                    <option value="Pix">Pix</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                    <option value="Transferência">Transferência</option>
+                    <option value="Cartão">Cartão</option>
+                </select>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                 <button onclick="savePayment()" class="btn btn-success">Confirmar</button>
@@ -374,15 +435,67 @@
         <div id="receiptArea" class="receipt-paper"></div>
     </div>
 
+    <!-- Modal: Avaliação e Observações Pós-Evento -->
+    <div id="postEventModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>⭐ Avaliação do Evento</h3>
+            <div style="margin-bottom:15px; text-align:center;">
+                <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">
+                    Como foi o evento?
+                </label>
+                <div class="stars" id="starRating">
+                    <span class="star" onclick="setRating(1)">⭐</span>
+                    <span class="star" onclick="setRating(2)">⭐</span>
+                    <span class="star" onclick="setRating(3)">⭐</span>
+                    <span class="star" onclick="setRating(4)">⭐</span>
+                    <span class="star" onclick="setRating(5)">⭐</span>
+                </div>
+            </div>
+            <div style="margin-bottom:15px;">
+                <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:5px;">
+                    Gastos Reais (R$)
+                </label>
+                <input type="text" id="realCosts" placeholder="0,00" oninput="maskMoneyInput(this)">
+            </div>
+            <div style="margin-bottom:15px;">
+                <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:5px;">
+                    Observações Pós-Evento
+                </label>
+                <textarea id="postObs" rows="3" placeholder="O que aconteceu? Cliente atrasou? Equipamento quebrou?"></textarea>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <button onclick="savePostEvent()" class="btn btn-success">Salvar</button>
+                <button onclick="closePostEventModal()" class="btn btn-outline">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="util.js"></script>
     <script>
         let currentItem = null;
         let currentPage = 1;
         let allItems = [];
+        let currentRating = 0;
         const ITEMS_PER_PAGE = 10;
 
         async function getHistory() { 
             return await DJ_BROWW.safeGet('dj_brow_contracts_history', []); 
+        }
+
+        function populateYearFilter() {
+            const select = document.getElementById('filterYear');
+            const history = JSON.parse(localStorage.getItem('dj_brow_contracts_history') || '[]');
+            const years = [...new Set(history.map(item => {
+                const d = new Date(item.data + 'T00:00:00');
+                return d.getFullYear();
+            }))].sort((a, b) => b - a);
+
+            years.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                select.appendChild(option);
+            });
         }
 
         async function render() {
@@ -395,7 +508,8 @@
                 const itemDate = new Date(item.data + 'T00:00:00');
                 const matchesSearch = (item.cliente || '').toLowerCase().includes(searchTerm) || 
                                      (item.local || '').toLowerCase().includes(searchTerm) ||
-                                     (item.tipo || '').toLowerCase().includes(searchTerm);
+                                     (item.tipo || '').toLowerCase().includes(searchTerm) ||
+                                     (item.numero || '').toLowerCase().includes(searchTerm);
                 const matchesMonth = month === 'all' || itemDate.getMonth() == month;
                 const matchesYear = !year || itemDate.getFullYear() == year;
                 return matchesSearch && matchesMonth && matchesYear;
@@ -407,6 +521,9 @@
             const totalFaturamento = filtered.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0);
             const totalPago = filtered.reduce((sum, item) => sum + (parseFloat(item.pago) || 0), 0);
             const totalSaldo = totalFaturamento - totalPago;
+            const totalGastosReais = filtered.reduce((sum, item) => sum + (parseFloat(item.gastosReais) || 0), 0);
+            const totalLucro = totalPago - totalGastosReais;
+            const mediaEvento = filtered.length > 0 ? totalFaturamento / filtered.length : 0;
 
             document.getElementById('totalFaturamento').innerText = 
                 totalFaturamento.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -414,6 +531,10 @@
                 totalPago.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             document.getElementById('totalSaldo').innerText = 
                 totalSaldo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('totalLucro').innerText = 
+                totalLucro.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('mediaEvento').innerText = 
+                mediaEvento.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
             // Paginação
             const paginated = DJ_BROWW.paginate(filtered, currentPage, ITEMS_PER_PAGE);
@@ -435,8 +556,12 @@
                 const valor = parseFloat(item.valor) || 0;
                 const pago = parseFloat(item.pago) || 0;
                 const saldo = valor - pago;
+                const gastosReais = parseFloat(item.gastosReais) || 0;
+                const lucroReal = pago - gastosReais;
                 const countdown = DJ_BROWW.calculateCountdown(item.data);
                 const isPaid = saldo <= 0;
+                const isPast = new Date(item.data + 'T00:00:00') < new Date();
+                const rating = item.rating || 0;
 
                 return `
                 <div class="event-card" style="animation-delay: ${index * 0.05}s">
@@ -453,6 +578,7 @@
                     </div>
                     <div class="event-client">
                         👤 ${DJ_BROWW.escapeHtml(item.cliente)}
+                        ${item.numero ? `<span style="font-size:0.75rem; color:var(--info);">Nº ${item.numero}</span>` : ''}
                         ${item.tel ? `<a href="https://wa.me/55${item.tel.replace(/\D/g,'')}" target="_blank" class="btn btn-whatsapp btn-sm" style="text-decoration:none;">WhatsApp</a>` : ''}
                     </div>
                     <div class="event-details">
@@ -460,6 +586,7 @@
                         <strong>Local:</strong> ${DJ_BROWW.escapeHtml(item.local || '---')}<br>
                         <strong>Horário:</strong> ${item.inicio || '--:--'} às ${item.termino || '--:--'}
                         ${item.pagamento ? `<br><strong>Pagamento:</strong> ${DJ_BROWW.escapeHtml(item.pagamento)}` : ''}
+                        ${item.formaPagamento ? `<br><strong>Forma:</strong> ${DJ_BROWW.escapeHtml(item.formaPagamento)}` : ''}
                     </div>
                     <div class="finance-box">
                         <div class="finance-item">
@@ -477,10 +604,37 @@
                             </span>
                         </div>
                     </div>
+                    ${gastosReais > 0 ? `
+                    <div class="finance-box" style="background: rgba(0,255,136,0.02); border-color: rgba(0,255,136,0.1);">
+                        <div class="finance-item">
+                            Gastos Reais
+                            <span class="finance-value finance-saldo">${gastosReais.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</span>
+                        </div>
+                        <div class="finance-item">
+                            Lucro Real
+                            <span class="finance-value finance-lucro">${lucroReal.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</span>
+                        </div>
+                        <div class="finance-item">
+                            Margem
+                            <span class="finance-value ${lucroReal > 0 ? 'finance-lucro' : 'finance-saldo'}">${lucroReal > 0 ? '+' : ''}${((lucroReal / pago) * 100).toFixed(1)}%</span>
+                        </div>
+                    </div>
+                    ` : ''}
+                    ${rating > 0 ? `
+                    <div class="stars" style="margin-top:8px;">
+                        ${[1,2,3,4,5].map(i => `<span class="star ${i <= rating ? 'active' : ''}">⭐</span>`).join('')}
+                    </div>
+                    ` : ''}
+                    ${item.postObs ? `
+                    <div class="obs-box">
+                        <strong>📝 Observações:</strong> ${DJ_BROWW.escapeHtml(item.postObs)}
+                    </div>
+                    ` : ''}
                     <div class="event-footer">
                         <div class="event-actions">
                             ${!isPaid ? `<button onclick="openPaymentModal(${item.id})" class="btn btn-success btn-sm">💰 Pagar</button>` : ''}
                             <button onclick="openEditModal(${item.id})" class="btn btn-warning btn-sm">📄 Recibo</button>
+                            ${isPast && item.status === 'Concluído' ? `<button onclick="openPostEventModal(${item.id})" class="btn btn-info btn-sm">⭐ Avaliar</button>` : ''}
                             <button onclick="editEvent(${item.id})" class="btn btn-outline btn-sm">✏️ Editar</button>
                         </div>
                         <button onclick="deleteItem(${item.id})" class="btn btn-outline btn-sm" style="color:var(--danger); border-color:var(--danger);">
@@ -541,6 +695,7 @@
 
         async function savePayment() {
             const valorPago = DJ_BROWW.unmaskMoney(document.getElementById('paymentValue').value);
+            const formaPagamento = document.getElementById('paymentForm').value;
             if (valorPago <= 0) {
                 DJ_BROWW.toast('Informe um valor válido!', 'warning');
                 return;
@@ -551,9 +706,11 @@
             if (index === -1) return;
 
             history[index].pago = (parseFloat(history[index].pago) || 0) + valorPago;
+            history[index].formaPagamento = formaPagamento;
             history[index].lastPayment = {
                 value: valorPago,
-                date: new Date().toISOString()
+                date: new Date().toISOString(),
+                forma: formaPagamento
             };
 
             await DJ_BROWW.safeSet('dj_brow_contracts_history', history);
@@ -594,10 +751,8 @@
             const pago = parseFloat(currentItem.pago) || 0;
             const saldo = valor - pago;
 
-            // Sugerir valor baseado no saldo
             document.getElementById('editReceiptValue').value = saldo > 0 ? saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
 
-            // Selecionar referência apropriada
             const select = document.getElementById('editReceiptRef');
             if (pago === 0) {
                 select.value = 'Sinal de Reserva (20%)';
@@ -624,7 +779,7 @@
             }
 
             const djData = await DJ_BROWW.safeGet('dj_brow_contract_data_v3', {});
-            const djSignature = localStorage.getItem('dj_brow_signature');
+            const djSignature = DJ_BROWW.loadSignature();
             const receiptNum = DJ_BROWW.getNextReceiptNumber();
 
             const receiptHtml = `
@@ -647,7 +802,7 @@
                 </p>
                 <div style="margin-top:50px; text-align:center;">
                     <div style="border-bottom:1px solid #000; width:280px; margin:0 auto; min-height:60px; display:flex; align-items:center; justify-content:center;">
-                        ${djSignature ? `<img src="${DJ_BROWW.escapeAttr(djSignature)}" style="max-height:60px;">` : ''}
+                        ${djSignature && djSignature.imagem ? `<img src="${DJ_BROWW.escapeAttr(djSignature.imagem)}" style="max-height:60px;">` : ''}
                     </div>
                     <p style="margin-top:10px; font-size:0.9rem;">
                         <strong>${DJ_BROWW.escapeHtml(djData.contr_nome_civil || 'CONTRATADO')}</strong><br>
@@ -655,7 +810,7 @@
                     </p>
                 </div>
                 <div style="margin-top:40px; padding-top:15px; border-top:1px dashed #ccc; font-size:0.7rem; color:#666; text-align:center;">
-                    <p>Documento gerado digitalmente pelo DJ Brow Sistema v4.0</p>
+                    <p>Documento gerado digitalmente pelo DJ Brow Sistema v4.2</p>
                     <p>Recibo nº ${receiptNum} — ${new Date().toLocaleString('pt-BR')}</p>
                 </div>
             `;
@@ -690,6 +845,51 @@ body { font-family:'Times New Roman',serif; max-width:600px; margin:0 auto; padd
             document.getElementById('receiptModal').classList.remove('active'); 
         }
 
+        // ===== AVALIAÇÃO PÓS-EVENTO =====
+        function openPostEventModal(id) {
+            currentItem = allItems.find(h => h.id === id);
+            if (!currentItem) return;
+            currentRating = currentItem.rating || 0;
+            updateStars();
+            document.getElementById('realCosts').value = currentItem.gastosReais ? currentItem.gastosReais.toLocaleString('pt-BR', {minimumFractionDigits:2}) : '';
+            document.getElementById('postObs').value = currentItem.postObs || '';
+            document.getElementById('postEventModal').classList.add('active');
+        }
+
+        function closePostEventModal() {
+            document.getElementById('postEventModal').classList.remove('active');
+        }
+
+        function setRating(rating) {
+            currentRating = rating;
+            updateStars();
+        }
+
+        function updateStars() {
+            const stars = document.querySelectorAll('#starRating .star');
+            stars.forEach((star, index) => {
+                star.classList.toggle('active', index < currentRating);
+            });
+        }
+
+        async function savePostEvent() {
+            const gastosReais = DJ_BROWW.unmaskMoney(document.getElementById('realCosts').value);
+            const obs = document.getElementById('postObs').value.trim();
+
+            let history = await getHistory();
+            const index = history.findIndex(h => h.id === currentItem.id);
+            if (index === -1) return;
+
+            history[index].rating = currentRating;
+            history[index].gastosReais = gastosReais;
+            history[index].postObs = obs;
+
+            await DJ_BROWW.safeSet('dj_brow_contracts_history', history);
+            closePostEventModal();
+            DJ_BROWW.toast('Avaliação salva com sucesso!', 'success');
+            render();
+        }
+
         async function editEvent(id) {
             const history = await getHistory();
             const item = history.find(h => h.id === id);
@@ -714,6 +914,60 @@ body { font-family:'Times New Roman',serif; max-width:600px; margin:0 auto; padd
             });
         }
 
+        // ===== EXPORTAR CSV =====
+        async function exportarCSV() {
+            const history = await getHistory();
+            if (history.length === 0) {
+                DJ_BROWW.toast('Nenhum dado para exportar', 'warning');
+                return;
+            }
+
+            const data = history.map(item => ({
+                'Data': item.data,
+                'Cliente': item.cliente,
+                'Tipo': item.tipo,
+                'Local': item.local,
+                'Valor': item.valor,
+                'Pago': item.pago || 0,
+                'Saldo': (parseFloat(item.valor) - parseFloat(item.pago || 0)).toFixed(2),
+                'Gastos Reais': item.gastosReais || 0,
+                'Lucro': ((parseFloat(item.pago) || 0) - (parseFloat(item.gastosReais) || 0)).toFixed(2),
+                'Status': item.status || 'A Concluir',
+                'Avaliação': item.rating || '',
+                'Nº Contrato': item.numero || ''
+            }));
+
+            DJ_BROWW.exportToCSV(data, `dj_brow_historico_${new Date().toISOString().split('T')[0]}.csv`);
+            DJ_BROWW.toast('CSV exportado com sucesso!', 'success');
+        }
+
+        // ===== COMPARAR ORÇADO VS REAL =====
+        async function compararOrcadoReal() {
+            const history = await getHistory();
+            const itemsComDados = history.filter(item => parseFloat(item.gastosReais) > 0);
+
+            if (itemsComDados.length === 0) {
+                DJ_BROWW.toast('Preencha "Gastos Reais" nos eventos concluídos para comparar', 'warning', 5000);
+                return;
+            }
+
+            let mensagem = '📊 COMPARATIVO ORÇADO vs REAL\n\n';
+            itemsComDados.forEach(item => {
+                const orcado = parseFloat(item.valor) || 0;
+                const real = parseFloat(item.gastosReais) || 0;
+                const diferenca = orcado - real;
+                const percentual = orcado > 0 ? ((diferenca / orcado) * 100).toFixed(1) : 0;
+                mensagem += `${item.cliente} (${DJ_BROWW.formatDateBR(item.data)})\n`;
+                mensagem += `  Orçado: ${DJ_BROWW.formatCurrency(orcado)}\n`;
+                mensagem += `  Real: ${DJ_BROWW.formatCurrency(real)}\n`;
+                mensagem += `  Diferença: ${diferenca >= 0 ? '+' : ''}${DJ_BROWW.formatCurrency(diferenca)} (${percentual}%)\n\n`;
+            });
+
+            navigator.clipboard.writeText(mensagem).then(() => {
+                DJ_BROWW.toast('Comparativo copiado! Cole onde desejar', 'success');
+            });
+        }
+
         document.getElementById('searchClient').addEventListener('input', () => {
             currentPage = 1;
             render();
@@ -722,7 +976,7 @@ body { font-family:'Times New Roman',serif; max-width:600px; margin:0 auto; padd
             currentPage = 1;
             render();
         });
-        document.getElementById('filterYear').addEventListener('input', () => {
+        document.getElementById('filterYear').addEventListener('change', () => {
             currentPage = 1;
             render();
         });
@@ -736,7 +990,10 @@ body { font-family:'Times New Roman',serif; max-width:600px; margin:0 auto; padd
             });
         });
 
-        window.addEventListener('load', render);
+        window.addEventListener('load', () => {
+            populateYearFilter();
+            render();
+        });
     </script>
 </body>
 </html>
